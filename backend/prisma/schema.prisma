@@ -1,0 +1,254 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  CLUB_ADMIN
+  STUDENT
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum OtpType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model User {
+  id           String                 @id @default(uuid())
+  name         String
+  email        String                 @unique
+  passwordHash String
+  role                       Role                   @default(STUDENT)
+  isActive                   Boolean                @default(true)
+  isEmailVerified            Boolean                @default(true)
+  verificationCode           String?
+  verificationCodeExpiresAt  DateTime?
+  sicNo                      String?
+  batch                      String?
+  gender                     String?
+  resetToken                 String?
+  resetTokenExpiresAt        DateTime?
+  createdAt                  DateTime               @default(now())
+  updatedAt                  DateTime               @updatedAt
+  
+  assignments  ClubAdminAssignment[]  @relation("UserAssignments")
+  createdEvents Event[]               @relation("UserCreatedEvents")
+  registrations Registration[]        @relation("UserRegistrations")
+  sentInvitations     TeamInvitation[] @relation("SentInvitations")
+  receivedInvitations TeamInvitation[] @relation("ReceivedInvitations")
+
+  @@map("users")
+}
+
+model Club {
+  id               String                 @id @default(uuid())
+  name             String
+  slug             String                 @unique
+  shortDescription String?
+  description      String                 @db.Text
+  logoUrl          String?
+  bannerUrl        String?
+  category         String?
+  contactEmail     String?
+  contactPhone     String?
+  isPublic         Boolean                @default(true)
+  isArchived       Boolean                @default(false)
+  // Leadership & Details
+  establishedYear         Int?                   @default(2019)
+  roomOrVenue             String?
+  meetingSchedule         String?
+  facultyCoordinator      String?
+  facultyCoordinatorEmail String?
+  facultyCoordinatorPhone String?
+  facultyCoordinatorPhoto String?                @db.Text
+  facultyDept             String?
+  secretary               String?
+  secretaryEmail          String?
+  secretaryPhone          String?
+  secretaryBranch         String?
+  secretaryYear           String?
+  secretaryPhoto          String?                @db.Text
+  jointSecretary          String?
+  jointSecretaryEmail     String?
+  jointSecretaryPhone     String?
+  jointSecretaryBranch    String?
+  jointSecretaryYear      String?
+  jointSecretaryPhoto     String?                @db.Text
+  coordinators            Json?
+  socialLinks             Json?
+
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  assignments            ClubAdminAssignment[]        @relation("ClubAssignments")
+  events                 Event[]                      @relation("ClubEvents")
+
+  @@map("clubs")
+}
+
+
+model ClubAdminAssignment {
+  id               String   @id @default(uuid())
+  userId           String
+  clubId           String
+  assignedAt       DateTime @default(now())
+  assignedByUserId String?
+
+  user User @relation("UserAssignments", fields: [userId], references: [id], onDelete: Cascade)
+  club Club @relation("ClubAssignments", fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+  @@map("club_admin_assignments")
+}
+
+model Event {
+  id                   String        @id @default(uuid())
+  clubId               String
+  title                String
+  slug                 String        @unique
+  summary              String?
+  description          String        @db.Text
+  bannerUrl            String?
+  category             String?
+  venue                String?
+  onlineMeetingUrl     String?
+  startsAt             DateTime
+  endsAt               DateTime
+  registrationDeadline DateTime
+  capacity             Int?
+  status               EventStatus   @default(DRAFT)
+
+  // Registration & Participation Requirements
+  isRegistrationRequired Boolean     @default(true)
+  entryFee               String?     @default("Free")
+  eligibility            String?     @db.Text
+  isTeamEvent            Boolean     @default(false)
+  minTeamSize            Int?        @default(1)
+  maxTeamSize            Int?        @default(1)
+
+  // Prizes, Rewards & Rules
+  prizePool              String?
+  rewards                Json?
+  rules                  Json?
+  timeline               Json?
+
+  // Attachment / Brochure / Rulebook
+  attachmentUrl          String?     @db.Text
+  attachmentName         String?
+  attachmentSize         String?
+
+  // Coordinators (Faculty & Student Leads)
+  coordinator1Name       String?
+  coordinator1Role       String?
+  coordinator1Email      String?
+  coordinator1Phone      String?
+  coordinator2Name       String?
+  coordinator2Role       String?
+  coordinator2Email      String?
+  coordinator2Phone      String?
+
+  meta                   Json?
+
+  createdByUserId      String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  club          Club           @relation("ClubEvents", fields: [clubId], references: [id], onDelete: Cascade)
+  createdByUser User           @relation("UserCreatedEvents", fields: [createdByUserId], references: [id])
+  registrations Registration[] @relation("EventRegistrations")
+  teamInvitations TeamInvitation[] @relation("EventInvitations")
+
+  @@index([clubId, status, startsAt])
+  @@index([status, startsAt])
+  @@map("events")
+}
+
+model Registration {
+  id                String             @id @default(uuid())
+  eventId           String
+  participantUserId String?
+  participantName   String
+  participantEmail  String
+  collegeName       String?
+  rollNumber        String?
+  phone             String?
+  branch            String?
+  year              String?
+  teamName          String?
+  teamMembers       Json?
+  status            RegistrationStatus @default(CONFIRMED)
+  registeredAt      DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  event           Event @relation("EventRegistrations", fields: [eventId], references: [id], onDelete: Cascade)
+  participantUser User? @relation("UserRegistrations", fields: [participantUserId], references: [id], onDelete: SetNull)
+  teamInvitations TeamInvitation[] @relation("RegistrationInvitations")
+
+  @@unique([eventId, participantEmail])
+  @@index([eventId, status, registeredAt])
+  @@map("registrations")
+}
+
+model TeamInvitation {
+  id              String           @id @default(uuid())
+  eventId         String
+  registrationId  String?
+  teamName        String
+  inviterUserId   String
+  inviterName     String
+  inviteeUserId   String?
+  inviteeEmail    String
+  inviteeName     String?
+  status          InvitationStatus @default(PENDING)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  event        Event         @relation("EventInvitations", fields: [eventId], references: [id], onDelete: Cascade)
+  inviter      User          @relation("SentInvitations", fields: [inviterUserId], references: [id], onDelete: Cascade)
+  invitee      User?         @relation("ReceivedInvitations", fields: [inviteeUserId], references: [id], onDelete: SetNull)
+  registration Registration? @relation("RegistrationInvitations", fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, inviteeEmail])
+  @@index([inviteeEmail, status])
+  @@index([inviterUserId])
+  @@index([eventId, status])
+  @@map("team_invitations")
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  type      OtpType  @default(EMAIL_VERIFICATION)
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, type])
+  @@index([email, code])
+  @@map("otps")
+}

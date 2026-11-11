@@ -49,6 +49,7 @@ model User {
   sicNo                      String?
   batch                      String?
   gender                     String?
+  department                 String?
   resetToken                 String?
   resetTokenExpiresAt        DateTime?
   createdAt                  DateTime               @default(now())

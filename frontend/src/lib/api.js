@@ -65,7 +65,7 @@ export async function fetchApi(endpoint, options = {}) {
 // Authentication APIs
 export const authApi = {
   login: (email, password) => api.post('/auth/login', { email, password }),
-  register: (name, email, password) => api.post('/auth/register', { name, email, password }),
+  register: (name, email, password, extra = {}) => api.post('/auth/register', { name, email, password, ...extra }),
   verifyEmail: (email, code, extra = {}) => api.post('/auth/verify-email', { email, code, ...extra }),
   updateProfile: (data) => api.patch('/auth/profile', data),
   resendVerification: (email) => api.post('/auth/resend-verification', { email }),

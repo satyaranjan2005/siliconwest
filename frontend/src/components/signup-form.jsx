@@ -24,12 +24,21 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/auth-context';
 
+const DEPARTMENTS = [
+  { code: 'CSE', name: 'Computer Science & Engineering' },
+  { code: 'ECE', name: 'Electronics & Communication Engineering' },
+  { code: 'CE', name: 'Civil Engineering' },
+  { code: 'EE', name: 'Electrical Engineering' },
+  { code: 'ME', name: 'Mechanical Engineering' },
+];
+
 export function SignupForm({ className, ...props }) {
   const router = useRouter();
   const { register } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [department, setDepartment] = useState('CSE');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,6 +63,11 @@ export function SignupForm({ className, ...props }) {
       return;
     }
 
+    if (!department) {
+      setError('Please select your academic department.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match. Please verify your password.');
       return;
@@ -67,8 +81,8 @@ export function SignupForm({ className, ...props }) {
     setLoading(true);
 
     try {
-      await register(name.trim(), email.trim(), password);
-      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+      await register(name.trim(), email.trim(), password, { department });
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim())}&dept=${encodeURIComponent(department)}`);
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -129,6 +143,30 @@ export function SignupForm({ className, ...props }) {
                 />
                 <FieldDescription>
                   Must be your official college email ID (@silicon.ac.in).
+                </FieldDescription>
+              </Field>
+
+              {/* Department Field */}
+              <Field>
+                <FieldLabel htmlFor="department">
+                  Department <span className="text-red-500">*</span>
+                </FieldLabel>
+                <select
+                  id="department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  required
+                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#034694]/20 focus:border-[#034694] transition-all cursor-pointer"
+                >
+                  <option value="" disabled>Select your department</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept.code} value={dept.code}>
+                      {dept.code} — {dept.name}
+                    </option>
+                  ))}
+                </select>
+                <FieldDescription>
+                  Choose your engineering department (CSE, ECE, CE, EE, ME).
                 </FieldDescription>
               </Field>
 

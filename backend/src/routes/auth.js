@@ -18,11 +18,16 @@ const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
   password: z.string().min(6),
+  department: z.string().optional().nullable(),
+  sicNo: z.string().optional().nullable(),
+  batch: z.string().optional().nullable(),
+  gender: z.string().optional().nullable(),
 });
 
 const verifyEmailSchema = z.object({
   email: z.string().email(),
   code: z.string().min(4).max(10),
+  department: z.string().optional().nullable(),
   sicNo: z.string().optional().nullable(),
   batch: z.string().optional().nullable(),
   gender: z.string().optional().nullable(),
@@ -169,6 +174,7 @@ router.post('/login', async (req, res) => {
         sicNo: user.sicNo,
         batch: user.batch,
         gender: user.gender,
+        department: user.department,
         isEmailVerified: user.isEmailVerified,
         assignedClubs: user.assignments.map(a => a.club)
       }
@@ -185,7 +191,7 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/register (for participants / students)
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = registerSchema.parse(req.body);
+    const { name, email, password, department, sicNo, batch, gender } = registerSchema.parse(req.body);
     const normalizedEmail = email.toLowerCase().trim();
 
     // Enforce Silicon ID restriction
@@ -220,6 +226,7 @@ router.post('/register', async (req, res) => {
           data: {
             name,
             passwordHash,
+            ...(department && { department: String(department).trim().toUpperCase() }),
             verificationCode,
             verificationCodeExpiresAt,
           },
@@ -250,6 +257,10 @@ router.post('/register', async (req, res) => {
         email: normalizedEmail,
         passwordHash,
         role: 'STUDENT',
+        department: department ? String(department).trim().toUpperCase() : null,
+        ...(sicNo && { sicNo: String(sicNo).trim().toUpperCase() }),
+        ...(batch && { batch: String(batch).trim() }),
+        ...(gender && { gender: String(gender).trim() }),
         isActive: true,
         isEmailVerified: false,
         verificationCode,
@@ -281,7 +292,7 @@ router.post('/register', async (req, res) => {
 // POST /api/auth/verify-email
 router.post('/verify-email', async (req, res) => {
   try {
-    const { email, code, sicNo, batch, gender } = verifyEmailSchema.parse(req.body);
+    const { email, code, department, sicNo, batch, gender } = verifyEmailSchema.parse(req.body);
     const normalizedEmail = email.toLowerCase().trim();
 
     const user = await prisma.user.findUnique({
@@ -316,6 +327,10 @@ router.post('/verify-email', async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          department: user.department,
+          sicNo: user.sicNo,
+          batch: user.batch,
+          gender: user.gender,
           isEmailVerified: true,
           assignedClubs: user.assignments.map(a => a.club)
         }
@@ -341,6 +356,7 @@ router.post('/verify-email', async (req, res) => {
         isEmailVerified: true,
         verificationCode: null,
         verificationCodeExpiresAt: null,
+        ...(department !== undefined && { department: department ? String(department).trim().toUpperCase() : null }),
         ...(sicNo !== undefined && { sicNo: sicNo ? String(sicNo).trim().toUpperCase() : null }),
         ...(batch !== undefined && { batch: batch ? String(batch).trim() : null }),
         ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
@@ -361,6 +377,7 @@ router.post('/verify-email', async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
+        department: updatedUser.department,
         sicNo: updatedUser.sicNo,
         batch: updatedUser.batch,
         gender: updatedUser.gender,
@@ -545,6 +562,7 @@ router.get('/me', authenticate, async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      department: user.department,
       sicNo: user.sicNo,
       batch: user.batch,
       gender: user.gender,
@@ -557,13 +575,14 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
-// PATCH /api/auth/profile - Update student profile (SIC No, Batch, Gender, etc.)
+// PATCH /api/auth/profile - Update student profile (SIC No, Batch, Gender, Department, etc.)
 router.patch('/profile', authenticate, async (req, res) => {
   try {
-    const { sicNo, batch, gender, name } = req.body;
+    const { sicNo, batch, gender, department, name } = req.body;
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
+        ...(department !== undefined && { department: department ? String(department).trim().toUpperCase() : null }),
         ...(sicNo !== undefined && { sicNo: sicNo ? String(sicNo).trim().toUpperCase() : null }),
         ...(batch !== undefined && { batch: batch ? String(batch).trim() : null }),
         ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
@@ -578,6 +597,7 @@ router.patch('/profile', authenticate, async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         role: updatedUser.role,
+        department: updatedUser.department,
         sicNo: updatedUser.sicNo,
         batch: updatedUser.batch,
         gender: updatedUser.gender,

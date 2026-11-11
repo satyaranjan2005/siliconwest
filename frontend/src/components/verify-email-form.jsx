@@ -37,6 +37,7 @@ export function VerifyEmailForm({ className, ...props }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const emailParam = searchParams.get('email') || '';
+  const deptParam = searchParams.get('dept') || '';
 
   const { verifyEmail, updateProfile, user: currentUser } = useAuth();
 
@@ -46,6 +47,7 @@ export function VerifyEmailForm({ className, ...props }) {
 
   // Post-verification student profile fields
   const [sicNo, setSicNo] = useState('');
+  const [department, setDepartment] = useState(deptParam || 'CSE');
   const [batch, setBatch] = useState('2023 - 2027');
   const [gender, setGender] = useState('Male');
 
@@ -126,6 +128,7 @@ export function VerifyEmailForm({ className, ...props }) {
     try {
       await updateProfile({
         sicNo: cleanSic,
+        department,
         batch: batch.trim(),
         gender: gender.trim(),
       });
@@ -367,7 +370,30 @@ export function VerifyEmailForm({ className, ...props }) {
                     </FieldDescription>
                   </Field>
 
-                  {/* Field 2: Batch */}
+                  {/* Field 2: Department */}
+                  <Field>
+                    <FieldLabel htmlFor="department">
+                      Department <span className="text-red-500">*</span>
+                    </FieldLabel>
+                    <select
+                      id="department"
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                      className="w-full px-3 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#034694]/20 transition-all cursor-pointer"
+                      required
+                    >
+                      <option value="CSE">CSE — Computer Science & Engineering</option>
+                      <option value="ECE">ECE — Electronics & Communication Engineering</option>
+                      <option value="CE">CE — Civil Engineering</option>
+                      <option value="EE">EE — Electrical Engineering</option>
+                      <option value="ME">ME — Mechanical Engineering</option>
+                    </select>
+                    <FieldDescription>
+                      Your engineering department at Silicon West.
+                    </FieldDescription>
+                  </Field>
+
+                  {/* Field 3: Batch */}
                   <Field>
                     <FieldLabel htmlFor="batch">
                       Graduating Batch <span className="text-red-500">*</span>

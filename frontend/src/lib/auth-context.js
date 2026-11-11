@@ -46,8 +46,8 @@ export function AuthProvider({ children }) {
     return res.user;
   };
 
-  const register = async (name, email, password) => {
-    const res = await authApi.register(name, email, password);
+  const register = async (name, email, password, extra = {}) => {
+    const res = await authApi.register(name, email, password, extra);
     if (res.token && res.user) {
       setToken(res.token);
       setUser(res.user);

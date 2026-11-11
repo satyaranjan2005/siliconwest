@@ -1,13 +1,6 @@
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import AppShell from "@/components/layout/AppShell";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const viewport = {
   width: "device-width",
@@ -25,7 +18,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${inter.variable} font-sans`}>
+    <html lang="en" className="font-sans">
       <body className="min-h-screen bg-slate-50 text-slate-800 antialiased selection:bg-[#034694] selection:text-white font-sans">
         <AuthProvider>
           <AppShell>{children}</AppShell>

@@ -51,7 +51,7 @@ jobs:
         run: npm run build
 
   # ==========================================
-  # 2. Continuous Deployment (CD)
+  # 2. Continuous Deployment (CD - Native PM2)
   # ==========================================
   deploy:
     name: Deploy to Production Server
@@ -75,14 +75,22 @@ jobs:
             echo "📥 Pulling latest changes from main branch..."
             git pull origin main
 
-            echo "🐳 Rebuilding and updating Docker containers..."
-            docker compose down --remove-orphans
-            docker compose build --pull
-            docker compose up -d
+            echo "📦 Updating Backend..."
+            cd backend
+            npm install --production=false
+            npx prisma generate
+            npx prisma db push --skip-generate
+            cd ..
 
-            echo "🧹 Cleaning up dangling Docker images..."
-            docker image prune -f
+            echo "📦 Updating & Building Frontend..."
+            cd frontend
+            npm install
+            npm run build
+            cd ..
 
-            echo "✅ Deployment complete! Active containers:"
-            docker compose ps
+            echo "🔄 Reloading PM2 Processes..."
+            pm2 startOrReload ecosystem.config.js --update-env
+            pm2 save
 
+            echo "✅ Deployment complete! Status:"
+            pm2 status

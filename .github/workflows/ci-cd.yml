@@ -45,7 +45,7 @@ jobs:
       - name: Build Next.js Application
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:5000/api
+          NEXT_PUBLIC_API_URL: /api
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
         run: npm run build

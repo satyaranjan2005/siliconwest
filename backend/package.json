@@ -10,7 +10,8 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:clear": "node scripts/clear-db.js",
-    "db:superadmin": "node scripts/inject-superadmin.js"
+    "db:superadmin": "node scripts/inject-superadmin.js",
+    "email:test": "node scripts/test-email-queue.js"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",

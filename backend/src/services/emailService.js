@@ -270,11 +270,109 @@ function buildCleanBlueEmailLayout({
   `;
 }
 
+// ========================================================
+// SEQUENTIAL EMAIL QUEUE WITH CONFIGURABLE BREAK (60s)
+// ========================================================
+const emailQueue = [];
+let isQueueProcessing = false;
+
+// 60 seconds (60,000 ms) break between each email to strictly adhere to SMTP limits
+const EMAIL_SEND_INTERVAL_MS = Number(process.env.EMAIL_SEND_INTERVAL_MS) || 60000;
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Worker that processes the email queue one by one,
+ * pausing for 60 seconds (EMAIL_SEND_INTERVAL_MS) between each dispatch.
+ */
+async function processEmailQueue() {
+  if (isQueueProcessing) return;
+  isQueueProcessing = true;
+
+  console.log(`\n📬 [EMAIL QUEUE STARTED] Processing ${emailQueue.length} queued email(s) (${EMAIL_SEND_INTERVAL_MS / 1000}s cooldown between each).`);
+
+  while (emailQueue.length > 0) {
+    const job = emailQueue.shift();
+    const { mailOptions, type, queuedAt } = job;
+
+    try {
+      const mailTransporter = await getTransporter();
+      console.log(`\n🚀 [EMAIL QUEUE DISPATCH] (${type}) Sending to: ${mailOptions.to}`);
+      console.log(`   Subject  : ${mailOptions.subject}`);
+      console.log(`   Enqueued : ${queuedAt.toLocaleTimeString()}`);
+
+      const info = await mailTransporter.sendMail(mailOptions);
+      console.log(`✅ [EMAIL QUEUE SUCCESS] Delivered to ${mailOptions.to} (MessageId: ${info.messageId || 'ok'})`);
+    } catch (err) {
+      console.error(`❌ [EMAIL QUEUE ERROR] Failed to deliver to ${mailOptions.to}: ${err.message}`);
+    }
+
+    // If there are more emails waiting in line, enforce the 60-second break
+    if (emailQueue.length > 0) {
+      console.log(`⏳ [EMAIL QUEUE COOLDOWN] Waiting ${EMAIL_SEND_INTERVAL_MS / 1000}s before sending the next email to prevent SMTP rate limits... [${emailQueue.length} remaining]`);
+      await sleep(EMAIL_SEND_INTERVAL_MS);
+    }
+  }
+
+  isQueueProcessing = false;
+  console.log(`📭 [EMAIL QUEUE IDLE] All queued emails have been processed.\n`);
+}
+
+/**
+ * Enqueue an email into the delivery queue.
+ * Returns immediately with a queue receipt so callers (API endpoints) do not hang for 60+ seconds.
+ */
+function enqueueEmail(mailOptions, type = 'NOTIFICATION') {
+  const queuedAt = new Date();
+  const queuePosition = emailQueue.length + 1;
+  const estimatedDelaySec = (queuePosition - 1) * (EMAIL_SEND_INTERVAL_MS / 1000);
+
+  emailQueue.push({
+    mailOptions,
+    type,
+    queuedAt,
+  });
+
+  console.log(`📥 [EMAIL QUEUED] (${type}) Added email for ${mailOptions.to} [Position #${queuePosition} | Estimated delay: ${estimatedDelaySec}s]`);
+
+  // Start queue worker in background if not already active
+  processEmailQueue().catch((err) => {
+    console.error('Unexpected error in email queue runner:', err);
+  });
+
+  return {
+    status: 'queued',
+    messageId: `queue-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    to: mailOptions.to,
+    type,
+    queuePosition,
+    queuedAt,
+    estimatedDelaySec,
+  };
+}
+
+/**
+ * Inspect the current queue status
+ */
+function getEmailQueueStatus() {
+  return {
+    queueLength: emailQueue.length,
+    isProcessing: isQueueProcessing,
+    intervalSeconds: EMAIL_SEND_INTERVAL_MS / 1000,
+    pending: emailQueue.map((j) => ({
+      to: j.mailOptions.to,
+      type: j.type,
+      queuedAt: j.queuedAt,
+    })),
+  };
+}
+
 /**
  * 1. Send 6-digit email verification code (Clean Blue)
  */
 async function sendVerificationEmail({ to, name, code }) {
-  const mailTransporter = await getTransporter();
   const from = getSender();
   const senderAddress = (process.env.SMTP_USER || 'noreply@siliconwest.in').trim();
 
@@ -300,28 +398,22 @@ async function sendVerificationEmail({ to, name, code }) {
 
   const text = `Dear ${name || 'Student'},\n\nYour Silicon West account verification code is: ${code}\nValid for 15 minutes.\n\nEvent Management Committee\nSilicon Institute of Technology, Sambalpur`;
 
-  try {
-    const info = await mailTransporter.sendMail({
-      from,
-      to,
-      replyTo: senderAddress,
-      subject: `Verify your Silicon West account: ${code}`,
-      text,
-      html,
-    });
-    console.log(`📨 [SMTP SUCCESS] Verification code sent to ${to}`);
-    return info;
-  } catch (err) {
-    console.error(`⚠️ [SMTP ERROR] Failed to send verification code to ${to}: ${err.message}`);
-    return { messageId: 'fallback-logged', code };
-  }
+  const mailOptions = {
+    from,
+    to,
+    replyTo: senderAddress,
+    subject: `Verify your Silicon West account: ${code}`,
+    text,
+    html,
+  };
+
+  return enqueueEmail(mailOptions, 'ACCOUNT_VERIFICATION');
 }
 
 /**
  * 2. Send password reset email with code (Clean Blue & Red Alert)
  */
 async function sendPasswordResetEmail({ to, name, code }) {
-  const mailTransporter = await getTransporter();
   const from = getSender();
   const senderAddress = (process.env.SMTP_USER || 'noreply@siliconwest.in').trim();
 
@@ -347,21 +439,16 @@ async function sendPasswordResetEmail({ to, name, code }) {
 
   const text = `Dear ${name || 'User'},\n\nA request was made to reset your Silicon West password.\nAuthorization Code: ${code}\nValid for 15 minutes.\n\nEvent Management Committee\nSilicon Institute of Technology, Sambalpur`;
 
-  try {
-    const info = await mailTransporter.sendMail({
-      from,
-      to,
-      replyTo: senderAddress,
-      subject: `Reset your Silicon West password: ${code}`,
-      text,
-      html,
-    });
-    console.log(`🔑 [SMTP SUCCESS] Password reset sent to ${to}`);
-    return info;
-  } catch (err) {
-    console.error(`⚠️ [SMTP ERROR] Failed to send password reset code to ${to}: ${err.message}`);
-    return { messageId: 'fallback-logged', code };
-  }
+  const mailOptions = {
+    from,
+    to,
+    replyTo: senderAddress,
+    subject: `Reset your Silicon West password: ${code}`,
+    text,
+    html,
+  };
+
+  return enqueueEmail(mailOptions, 'PASSWORD_RESET');
 }
 
 /**
@@ -495,21 +582,16 @@ async function sendRegistrationConfirmationEmail({
 
   const text = `Dear ${name || 'Student'},\n\nYour registration for "${eventTitle}" is CONFIRMED.\n\nPass Code: ${passNo}\nDate: ${eventDate}\nVenue: ${venue}\nHost Club: ${clubName}\n\nView pass: ${appUrl}/dashboard/registrations\n\nEvent Management Committee\nSilicon Institute of Technology, Sambalpur`;
 
-  try {
-    const info = await mailTransporter.sendMail({
-      from,
-      to,
-      replyTo: senderAddress,
-      subject: `Registration Confirmed: ${eventTitle} [Pass: ${passNo}]`,
-      text,
-      html,
-    });
-    console.log(`🎟️ [SMTP SUCCESS] Registration pass sent to ${to}`);
-    return info;
-  } catch (err) {
-    console.error(`⚠️ [SMTP ERROR] Failed to send registration email to ${to}: ${err.message}`);
-    return { messageId: 'fallback-logged', passNo };
-  }
+  const mailOptions = {
+    from,
+    to,
+    replyTo: senderAddress,
+    subject: `Registration Confirmed: ${eventTitle} [Pass: ${passNo}]`,
+    text,
+    html,
+  };
+
+  return enqueueEmail(mailOptions, 'REGISTRATION_CONFIRMATION');
 }
 
 /**
@@ -522,7 +604,6 @@ async function sendTeamInvitationEmail({
   teamName,
   event,
 }) {
-  const mailTransporter = await getTransporter();
   const from = getSender();
   const senderAddress = (process.env.SMTP_USER || 'noreply@siliconwest.in').trim();
   const appUrl = getAppUrl();
@@ -586,21 +667,16 @@ async function sendTeamInvitationEmail({
 
   const text = `Dear ${teammateName || 'Student'},\n\n${inviterName} has invited you to join team "${teamName}" for "${eventTitle}".\nSchedule: ${eventDate}\nVenue: ${venue}\n\nRespond here: ${appUrl}/dashboard/invitations\n\nEvent Management Committee\nSilicon Institute of Technology, Sambalpur`;
 
-  try {
-    const info = await mailTransporter.sendMail({
-      from,
-      to,
-      replyTo: senderAddress,
-      subject: `Team Invitation: Join ${teamName} for ${eventTitle}`,
-      text,
-      html,
-    });
-    console.log(`🤝 [SMTP SUCCESS] Team invitation sent to ${to}`);
-    return info;
-  } catch (err) {
-    console.error(`⚠️ [SMTP ERROR] Failed to send team invitation to ${to}: ${err.message}`);
-    return { messageId: 'fallback-logged' };
-  }
+  const mailOptions = {
+    from,
+    to,
+    replyTo: senderAddress,
+    subject: `Team Invitation: Join ${teamName} for ${eventTitle}`,
+    text,
+    html,
+  };
+
+  return enqueueEmail(mailOptions, 'TEAM_INVITATION');
 }
 
 /**
@@ -614,7 +690,6 @@ async function sendTeamInviteStatusEmail({
   event,
   status,
 }) {
-  const mailTransporter = await getTransporter();
   const from = getSender();
   const senderAddress = (process.env.SMTP_USER || 'noreply@siliconwest.in').trim();
   const appUrl = getAppUrl();
@@ -680,21 +755,16 @@ async function sendTeamInviteStatusEmail({
 
   const text = `Dear ${inviterName || 'Team Leader'},\n\nYour teammate ${teammateName} has ${statusText} the team invitation for "${teamName}" in ${eventTitle}.\n\nView team roster: ${appUrl}/dashboard/registrations\n\nEvent Management Committee\nSilicon Institute of Technology, Sambalpur`;
 
-  try {
-    const info = await mailTransporter.sendMail({
-      from,
-      to,
-      replyTo: senderAddress,
-      subject: `Team Roster Update: ${teammateName} [${statusText}] Invitation for ${teamName}`,
-      text,
-      html,
-    });
-    console.log(`📣 [SMTP SUCCESS] Team status update sent to ${to}`);
-    return info;
-  } catch (err) {
-    console.error(`⚠️ [SMTP ERROR] Failed to send status email to ${to}: ${err.message}`);
-    return { messageId: 'fallback-logged' };
-  }
+  const mailOptions = {
+    from,
+    to,
+    replyTo: senderAddress,
+    subject: `Team Roster Update: ${teammateName} [${statusText}] Invitation for ${teamName}`,
+    text,
+    html,
+  };
+
+  return enqueueEmail(mailOptions, 'TEAM_INVITE_STATUS');
 }
 
 /**
@@ -703,6 +773,7 @@ async function sendTeamInviteStatusEmail({
 async function sendAllTemplatesTest({ targetEmail, recipientName = 'Satya Ranjan Nayak' }) {
   console.log(`\n======================================================`);
   console.log(`📤 Dispatching all clean-blue email templates to: ${targetEmail}`);
+  console.log(`   (They are enqueued and will send with 60s cooldown)`);
   console.log(`======================================================\n`);
 
   const results = {};
@@ -781,4 +852,6 @@ module.exports = {
   sendTeamInvitationEmail,
   sendTeamInviteStatusEmail,
   sendAllTemplatesTest,
+  enqueueEmail,
+  getEmailQueueStatus,
 };

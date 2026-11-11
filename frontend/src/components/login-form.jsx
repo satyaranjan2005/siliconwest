@@ -92,7 +92,7 @@ export function LoginForm({ className, ...props }) {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@siliconwest.ac.in"
+                  placeholder="yourname@silicon.ac.in"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -191,12 +191,6 @@ export function LoginForm({ className, ...props }) {
           </div>
         </CardContent>
       </Card>
-
-      <FieldDescription className="px-6 text-center text-xs text-slate-500">
-        By continuing, you agree to Silicon West&apos;s{' '}
-        <a href="#" className="underline hover:text-slate-800">Campus Code of Conduct</a> and{' '}
-        <a href="#" className="underline hover:text-slate-800">Privacy Policy</a>.
-      </FieldDescription>
     </div>
   );
 }

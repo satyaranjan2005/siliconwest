@@ -665,7 +665,7 @@ export default function EditClubPage() {
                 type="text"
                 value={form.facultyCoordinator}
                 onChange={(e) => setForm({ ...form, facultyCoordinator: e.target.value })}
-                placeholder="e.g. Dr. Amrit Ranjan Mohanty"
+                placeholder="Faculty Advisor Name"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -687,7 +687,7 @@ export default function EditClubPage() {
                 type="email"
                 value={form.facultyCoordinatorEmail}
                 onChange={(e) => setForm({ ...form, facultyCoordinatorEmail: e.target.value })}
-                placeholder="amrit.mohanty@silicon.ac.in"
+                placeholder="faculty@silicon.ac.in"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -753,7 +753,7 @@ export default function EditClubPage() {
                 type="text"
                 value={form.secretary}
                 onChange={(e) => setForm({ ...form, secretary: e.target.value })}
-                placeholder="e.g. Siddharth Patnaik"
+                placeholder="Student Secretary Name"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -787,7 +787,7 @@ export default function EditClubPage() {
                 type="email"
                 value={form.secretaryEmail}
                 onChange={(e) => setForm({ ...form, secretaryEmail: e.target.value })}
-                placeholder="siddharth.scc@silicon.ac.in"
+                placeholder="secretary@silicon.ac.in"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -853,7 +853,7 @@ export default function EditClubPage() {
                 type="text"
                 value={form.jointSecretary}
                 onChange={(e) => setForm({ ...form, jointSecretary: e.target.value })}
-                placeholder="e.g. Ananya Dash"
+                placeholder="Student Joint Secretary Name"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -887,7 +887,7 @@ export default function EditClubPage() {
                 type="email"
                 value={form.jointSecretaryEmail}
                 onChange={(e) => setForm({ ...form, jointSecretaryEmail: e.target.value })}
-                placeholder="ananya.scc@silicon.ac.in"
+                placeholder="jointsecretary@silicon.ac.in"
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#034694]/20"
               />
             </div>
@@ -1022,7 +1022,7 @@ export default function EditClubPage() {
                       type="text"
                       value={c.name}
                       onChange={(e) => updateCoordinator(index, 'name', e.target.value)}
-                      placeholder="e.g. Soumya Ranjan"
+                      placeholder="Student Full Name"
                       className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       required
                     />

@@ -858,7 +858,7 @@ export default function EventRegisterPage() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Type student name or Silicon ID to search (e.g. aditya or 22btech...)"
+                            placeholder="Type student name or Silicon email to search..."
                             className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#034694] focus:border-[#034694]"
                           />
                           {searching && (

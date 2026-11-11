@@ -17,12 +17,10 @@ import {
   ChevronRight,
   Shield,
   Layers,
-  Cpu,
   Palette,
   Camera,
   Code2,
   Building2,
-  HelpCircle,
   GraduationCap,
   Star,
   BookOpen,
@@ -70,36 +68,12 @@ function getCategoryStyle(cat) {
   };
 }
 
-const FAQS = [
-  {
-    q: 'Who can register and participate in campus events?',
-    a: 'All enrolled undergraduate and postgraduate students (B.Tech, MCA, M.Tech, B.Sc) of Silicon West across all semesters and branches are eligible to participate. A valid college ID card is required at check-in.',
-  },
-  {
-    q: 'How do I join a student club or technical society?',
-    a: 'Clubs conduct open recruitments and orientation bootcamps at the start of each semester. You can explore the club directory, reach out to student coordinators, or register through our membership portal.',
-  },
-  {
-    q: 'Are certificates and awards recognized by Silicon University?',
-    a: 'Yes. All hackathons, workshops, and inter-branch championships issue official verified certificates of participation and merit signed by faculty advisors and university authorities.',
-  },
-  {
-    q: 'Can I participate individually or do I need a team?',
-    a: 'Participation rules vary by event. Many hackathons and robotics contests allow teams of 2 to 4 students, while workshops and athletic tournaments support both individual and squad entries.',
-  },
-  {
-    q: 'How can student coordinators create or manage an event?',
-    a: 'Authorized club secretaries and admin leads can log in to the Club Admin dashboard to submit event proposals, manage seat capacities, review registrations, and export attendee rosters.',
-  },
-];
-
 export default function HomePage() {
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   useEffect(() => {
     async function loadData() {
@@ -156,7 +130,7 @@ export default function HomePage() {
 
             {/* Subtitle */}
             <p className="text-xs sm:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Your centralized gateway to national-level hackathons, robotics bootcamps, annual cultural galas, sports championships, and student-run societies.
+              Official portal for discovering student clubs, registering for campus events, and managing student activities at Silicon West.
             </p>
 
             {/* Quick Search Input */}
@@ -208,45 +182,6 @@ export default function HomePage() {
                 <Compass className="w-4 h-4 text-[#034694]" />
                 <span>Clubs Directory</span>
               </Link>
-            </div>
-          </div>
-
-          {/* Metric Highlights Strip */}
-          <div className="pt-6 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-6 text-center">
-            <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/60">
-              <div className="text-xl sm:text-3xl font-extrabold text-slate-900">
-                {clubs.length || 6}+
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">
-                Active Student Clubs
-              </div>
-            </div>
-
-            <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/60">
-              <div className="text-xl sm:text-3xl font-extrabold text-[#034694]">
-                {upcomingEvents.length || 4}
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">
-                Upcoming Events
-              </div>
-            </div>
-
-            <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/60">
-              <div className="text-xl sm:text-3xl font-extrabold text-slate-900">
-                100%
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">
-                Faculty Guided
-              </div>
-            </div>
-
-            <div className="p-2.5 sm:p-3 bg-slate-50/70 rounded-xl border border-slate-200/60">
-              <div className="text-xl sm:text-3xl font-extrabold text-slate-900">
-                25 Yrs
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-medium text-slate-500 uppercase tracking-wider mt-0.5">
-                Academic Legacy
-              </div>
             </div>
           </div>
         </div>
@@ -554,144 +489,6 @@ export default function HomePage() {
             <span>Browse Full Clubs Directory</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 5. CAMPUS MAKERS PACES & FACILITIES                            */}
-      {/* ============================================================== */}
-      <section className="bg-white border-y border-slate-200 py-14 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-10">
-          <div className="text-center max-w-2xl mx-auto space-y-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#034694]">
-              Campus Infrastructure
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Makerspaces &amp; Activity Hubs
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Modern laboratories and spaces supporting high-impact student projects and cultural productions.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-100 text-[#034694] flex items-center justify-center">
-                <Cpu className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Advanced Robotics Lab</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Equipped with ROS 2 development kits, LiDAR scanners, drone testing enclosures, and 3D prototyping stations.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                <Code2 className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Tech Innovation Arena</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                High-speed Gigabit workstations for non-stop national hackathons, algorithmic contests, and open-source sprints.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-              <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <Palette className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Amphitheatre &amp; SAC</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Open Air Amphitheatre and Student Activity Center acoustically engineered for battle of the bands, drama, and cultural galas.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                <Trophy className="w-5 h-5" />
-              </div>
-              <h3 className="font-bold text-slate-900 text-sm">Athletic Sports Grounds</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Floodlit cricket grounds, outdoor basketball &amp; volleyball courts, and an indoor arena for badminton and table tennis.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 6. FREQUENTLY ASKED QUESTIONS (FAQ)                            */}
-      {/* ============================================================== */}
-      <section className="py-14 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto w-full space-y-8">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#034694] uppercase tracking-wider">
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Got Questions?</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Everything you need to know about joining clubs, registering for events, and earning certifications.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openFaqIndex === idx;
-            return (
-              <div
-                key={idx}
-                className="bg-white border border-slate-200 rounded-xl overflow-hidden transition-colors"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaqIndex(isOpen ? -1 : idx)}
-                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-semibold text-slate-900 text-sm hover:text-[#034694] transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <span className="text-slate-400 shrink-0 text-base font-bold">
-                    {isOpen ? '−' : '+'}
-                  </span>
-                </button>
-                {isOpen && (
-                  <div className="px-4 sm:px-5 pb-4 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ============================================================== */}
-      {/* 7. CALL TO ACTION BANNER                                       */}
-      {/* ============================================================== */}
-      <section className="bg-white border-t border-slate-200 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto rounded-2xl bg-slate-900 text-white p-8 sm:p-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
-          <div className="space-y-2 max-w-2xl text-center md:text-left">
-            <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Ready to Dive Into Campus Life?
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Explore upcoming hackathons, sign up for workshops, or log in to manage your club assignments and registrations.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <Link
-              href="/events"
-              className="bg-white hover:bg-slate-100 text-slate-900 text-xs font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-2xs"
-            >
-              Browse Events
-            </Link>
-            <Link
-              href="/login"
-              className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-semibold px-5 py-2.5 rounded-xl transition-colors"
-            >
-              Coordinator Sign In
-            </Link>
-          </div>
         </div>
       </section>
     </div>

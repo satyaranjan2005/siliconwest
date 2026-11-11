@@ -68,18 +68,20 @@ export default function DashboardEventsPage() {
     loadData();
   }, []);
 
-  const handleDownloadCsv = async (event) => {
+  const handleDownloadCsv = async (event, teamFormat = 'roster') => {
     try {
-      const blob = await eventsApi.downloadExport(event.id);
+      const blob = await eventsApi.downloadExport(event.id, { teamFormat });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `registrations-${event.slug}.csv`;
+      const cleanTitle = (event.title || event.slug || 'Event').replace(/[^a-z0-9]/gi, '_');
+      const suffix = event.isTeamEvent ? (teamFormat === 'columns' ? 'TeamResponses' : 'TeamRoster') : 'Responses';
+      a.download = `${cleanTitle}_${suffix}.xls`;
       document.body.appendChild(a);
       a.click();
       a.remove();
     } catch (err) {
-      alert(err.message || 'CSV Export failed');
+      alert(err.message || 'Export failed');
     }
   };
 

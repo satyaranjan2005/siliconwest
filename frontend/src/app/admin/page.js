@@ -512,7 +512,7 @@ export default function SuperAdminPage() {
                     required
                     value={newUser.name}
                     onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                    placeholder="Prof. or Student Lead Name"
+                    placeholder="Enter full name"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                   />
                 </div>
@@ -524,7 +524,7 @@ export default function SuperAdminPage() {
                     required
                     value={newUser.email}
                     onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    placeholder="lead@silicon.ac.in"
+                    placeholder="user@silicon.ac.in"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl"
                   />
                 </div>

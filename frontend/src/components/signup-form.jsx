@@ -109,7 +109,7 @@ export function SignupForm({ className, ...props }) {
                 <Input
                   id="name"
                   type="text"
-                  placeholder="e.g. Satyaranjan Rout"
+                  placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -118,17 +118,17 @@ export function SignupForm({ className, ...props }) {
 
               {/* Email Field */}
               <Field>
-                <FieldLabel htmlFor="email">Official Silicon ID Email</FieldLabel>
+                <FieldLabel htmlFor="email">Official Silicon Email</FieldLabel>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="e.g. 22btech042@silicon.ac.in"
+                  placeholder="yourname@silicon.ac.in"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
                 <FieldDescription>
-                  Must be your official college email ID (@silicon.ac.in or @siliconwest.in).
+                  Must be your official college email ID (@silicon.ac.in).
                 </FieldDescription>
               </Field>
 
@@ -184,10 +184,6 @@ export function SignupForm({ className, ...props }) {
                 </div>
               </Field>
 
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card text-xs">
-                Student Member Perks
-              </FieldSeparator>
-
               <FieldDescription className="text-center text-xs">
                 Already have an account?{' '}
                 <Link href="/login" className="font-bold text-[#034694] hover:underline">
@@ -237,12 +233,6 @@ export function SignupForm({ className, ...props }) {
           </div>
         </CardContent>
       </Card>
-
-      <FieldDescription className="px-6 text-center text-xs text-slate-500">
-        By clicking create account, you agree to Silicon West&apos;s{' '}
-        <a href="#" className="underline hover:text-slate-800">Terms of Service</a> and{' '}
-        <a href="#" className="underline hover:text-slate-800">Privacy Policy</a>.
-      </FieldDescription>
     </div>
   );
 }

@@ -15,7 +15,6 @@ import {
   User,
   ChevronDown,
   Building2,
-  ExternalLink,
   GraduationCap,
   Bell,
   Check,
@@ -95,32 +94,6 @@ export default function Navbar() {
 
   return (
     <header className="w-full z-50 sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200">
-      {/* Top University Ticker Strip */}
-      <div className="bg-[#022b5c] text-white text-[11px] py-1 px-4 sm:px-6 border-b border-blue-950/40">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 truncate">
-            <span className="bg-amber-400 text-slate-900 font-bold px-1.5 py-0.2 rounded text-[9px] uppercase tracking-wider shrink-0">
-              Campus Hub
-            </span>
-            <span className="text-slate-200 truncate">
-              Silicon West Sambalpur Campus • College Club &amp; Event Management Portal
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-3 shrink-0 text-slate-300">
-            <a
-              href="https://silicon.ac.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-white transition-colors flex items-center gap-1"
-            >
-              <span>Main University (silicon.ac.in)</span>
-              <ExternalLink className="w-3 h-3 text-slate-400" />
-            </a>
-          </div>
-        </div>
-      </div>
-
       {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo & Name */}

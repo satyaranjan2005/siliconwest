@@ -206,19 +206,21 @@ export default function ClubAdminPage() {
     }
   };
 
-  // Download CSV
-  const handleDownloadCsv = async (event) => {
+  // Download Google Forms style responses spreadsheet
+  const handleDownloadCsv = async (event, teamFormat = 'roster') => {
     try {
-      const blob = await eventsApi.downloadExport(event.id);
+      const blob = await eventsApi.downloadExport(event.id, { teamFormat });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `registrations-${event.slug}.csv`;
+      const cleanTitle = (event.title || event.slug || 'Event').replace(/[^a-z0-9]/gi, '_');
+      const suffix = event.isTeamEvent ? (teamFormat === 'columns' ? 'TeamResponses' : 'TeamRoster') : 'Responses';
+      a.download = `${cleanTitle}_${suffix}.xls`;
       document.body.appendChild(a);
       a.click();
       a.remove();
     } catch (err) {
-      alert(err.message || 'CSV Export failed');
+      alert(err.message || 'Export failed');
     }
   };
 
@@ -403,9 +405,9 @@ export default function ClubAdminPage() {
                       <button
                         onClick={() => handleDownloadCsv(e)}
                         className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-1 rounded font-bold text-[11px] inline-flex items-center gap-1"
-                        title="Export CSV"
+                        title="Export Google Forms style responses sheet"
                       >
-                        <Download className="w-3 h-3" /> CSV
+                        <Download className="w-3 h-3" /> Export Sheet
                       </button>
                     </td>
                   </tr>
@@ -433,7 +435,7 @@ export default function ClubAdminPage() {
                     onClick={() => handleDownloadCsv(viewingEvent)}
                     className="bg-[#034694] hover:bg-blue-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm"
                   >
-                    <Download className="w-3.5 h-3.5" /> Export Authorized CSV
+                    <Download className="w-3.5 h-3.5" /> Export Responses (Excel / CSV)
                   </button>
                   <button
                     onClick={() => setViewingEvent(null)}

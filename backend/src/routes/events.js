@@ -203,6 +203,13 @@ router.get('/dashboard/registrations', authenticate, requireClubAdmin, async (re
       },
       orderBy: { registeredAt: 'desc' },
       include: {
+        participantUser: {
+          select: {
+            sicNo: true,
+            batch: true,
+            gender: true,
+          }
+        },
         event: {
           select: {
             id: true,
@@ -211,6 +218,7 @@ router.get('/dashboard/registrations', authenticate, requireClubAdmin, async (re
             startsAt: true,
             venue: true,
             category: true,
+            entryFee: true,
             club: { select: { id: true, name: true, slug: true, logoUrl: true } }
           }
         },
@@ -220,7 +228,14 @@ router.get('/dashboard/registrations', authenticate, requireClubAdmin, async (re
             inviteeName: true,
             inviteeEmail: true,
             status: true,
-            createdAt: true
+            createdAt: true,
+            invitee: {
+              select: {
+                sicNo: true,
+                batch: true,
+                gender: true,
+              }
+            }
           }
         }
       }
@@ -521,18 +536,97 @@ router.get('/:id/registrations', authenticate, checkEventAccess, async (req, res
   }
 });
 
-// GET /api/events/:id/export - CSV Export with formula injection prevention (Section 9.4)
+// Helper: Calculate Academic Year from Graduating Batch (e.g. "2023 - 2027") or SIC (e.g. "23BTECH042")
+function calculateYearFromBatch(batchStr, sicNo, fallbackYear) {
+  let startYear = null;
+
+  // 1. Extract from batch string: "2023 - 2027", "2023-2027", "2023"
+  if (batchStr) {
+    const match = String(batchStr).match(/\b(20\d{2})\b/);
+    if (match) {
+      startYear = parseInt(match[1], 10);
+    }
+  }
+
+  // 2. Fallback to first 2 digits of SIC: "23BTECH042", "24BCSN10"
+  if (!startYear && sicNo) {
+    const match = String(sicNo).trim().match(/^(\d{2})/);
+    if (match) {
+      startYear = 2000 + parseInt(match[1], 10);
+    }
+  }
+
+  if (startYear) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+    // Academic session starts in July (month 7)
+    const academicSessionStart = currentMonth >= 7 ? currentYear : currentYear - 1;
+    const yearDiff = academicSessionStart - startYear + 1;
+
+    if (yearDiff === 1) return '1st Year';
+    if (yearDiff === 2) return '2nd Year';
+    if (yearDiff === 3) return '3rd Year';
+    if (yearDiff === 4) return '4th Year';
+    if (yearDiff > 4) return `${yearDiff}th Year`;
+    if (yearDiff <= 0) return 'Incoming';
+  }
+
+  return fallbackYear || 'N/A';
+}
+
+// GET /api/events/:id/export - Styled Colored Excel Sheet & CSV Export
 router.get('/:id/export', authenticate, checkEventAccess, async (req, res) => {
   try {
     const { id } = req.params;
     const event = req.targetEvent;
+    const format = (req.query.format || 'excel').toLowerCase();
+    const teamFormat = (req.query.teamFormat || 'roster').toLowerCase(); // 'roster' (1 row per member) or 'columns' (wide google forms)
 
     const registrations = await prisma.registration.findMany({
       where: { eventId: id },
+      include: {
+        participantUser: {
+          select: {
+            sicNo: true,
+            batch: true,
+            gender: true,
+          }
+        },
+        teamInvitations: {
+          select: {
+            id: true,
+            inviteeName: true,
+            inviteeEmail: true,
+            status: true,
+            invitee: {
+              select: {
+                sicNo: true,
+                batch: true,
+                gender: true,
+              }
+            }
+          }
+        },
+        event: {
+          select: {
+            title: true,
+            category: true,
+            venue: true,
+            startsAt: true,
+            isTeamEvent: true,
+            club: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
+      },
       orderBy: { registeredAt: 'asc' }
     });
 
-    // Sanitizer for CSV Formula Injection: prefix dangerous characters with single quote
+    // Sanitizer for CSV Formula Injection
     const sanitizeCsvValue = (val) => {
       if (val === null || val === undefined) return '""';
       let str = String(val).replace(/"/g, '""');
@@ -542,28 +636,549 @@ router.get('/:id/export', authenticate, checkEventAccess, async (req, res) => {
       return `"${str}"`;
     };
 
-    const headers = ['Registration ID', 'Participant Name', 'Email', 'Phone', 'Team Name', 'College', 'Roll Number', 'Branch', 'Year', 'Status', 'Registered At'];
-    const rows = registrations.map(r => [
-      sanitizeCsvValue(r.id),
-      sanitizeCsvValue(r.participantName),
-      sanitizeCsvValue(r.participantEmail),
-      sanitizeCsvValue(r.phone),
-      sanitizeCsvValue(r.teamName || 'Individual'),
-      sanitizeCsvValue(r.collegeName),
-      sanitizeCsvValue(r.rollNumber),
-      sanitizeCsvValue(r.branch),
-      sanitizeCsvValue(r.year),
-      sanitizeCsvValue(r.status),
-      sanitizeCsvValue(new Date(r.registeredAt).toISOString()),
-    ].join(','));
+    const escapeHtml = (str) => {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    };
 
-    const csvContent = [headers.join(','), ...rows].join('\r\n');
+    const formatTimestamp = (date) => {
+      if (!date) return '';
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return '';
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
 
-    const filename = `registrations-${event.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${Date.now()}.csv`;
+    const isTeamEvent = Boolean(event.isTeamEvent);
+    const cleanTitle = (event.title || 'Event').replace(/[^a-z0-9]/gi, '_');
 
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.send(csvContent);
+    // Helper to extract teammates roster from teamInvitations or teamMembers JSON
+    const extractTeamMembers = (r) => {
+      const members = [];
+      if (Array.isArray(r.teamInvitations) && r.teamInvitations.length > 0) {
+        r.teamInvitations.forEach((inv) => {
+          const name = inv.inviteeName || 'Teammate';
+          const email = inv.inviteeEmail || 'N/A';
+          const sic = inv.invitee?.sicNo || (email.match(/^(\d{2}[a-zA-Z0-9]+)@/)?.[1]?.toUpperCase()) || 'N/A';
+          const year = calculateYearFromBatch(inv.invitee?.batch, sic !== 'N/A' ? sic : null, null);
+          const gender = inv.invitee?.gender || 'N/A';
+
+          let dept = 'N/A';
+          if (sic && sic !== 'N/A') {
+            const match = sic.match(/^\d{2}([A-Za-z]+)/);
+            if (match) {
+              const code = match[1].toUpperCase();
+              if (code.includes('CSE') || code.includes('CSN') || code.includes('BCSE')) dept = 'Computer Science & Engineering';
+              else if (code.includes('ECE') || code.includes('BECE')) dept = 'Electronics & Communication';
+              else if (code.includes('EEE') || code.includes('BEEE')) dept = 'Electrical & Electronics';
+              else if (code.includes('MECH') || code.includes('BMECH')) dept = 'Mechanical Engineering';
+              else if (code.includes('CIVIL') || code.includes('BCIVIL')) dept = 'Civil Engineering';
+              else if (code.includes('IT') || code.includes('BIT')) dept = 'Information Technology';
+              else dept = code;
+            }
+          }
+
+          members.push({
+            name,
+            email,
+            sic,
+            phone: 'N/A',
+            year,
+            gender,
+            dept,
+            status: inv.status || 'ACCEPTED',
+          });
+        });
+      } else if (Array.isArray(r.teamMembers) && r.teamMembers.length > 0) {
+        r.teamMembers.forEach((m) => {
+          if (typeof m === 'object' && m !== null) {
+            const name = m.name || m.fullName || 'Teammate';
+            const email = m.email || 'N/A';
+            const sic = m.sic || m.sicNo || (email.match(/^(\d{2}[a-zA-Z0-9]+)@/)?.[1]?.toUpperCase()) || 'N/A';
+            const year = calculateYearFromBatch(m.batch, sic !== 'N/A' ? sic : null, m.year);
+            const gender = m.gender || 'N/A';
+            const dept = m.branch || m.department || 'N/A';
+            members.push({
+              name,
+              email,
+              sic,
+              phone: m.phone || 'N/A',
+              year,
+              gender,
+              dept,
+              status: m.status || 'CONFIRMED',
+            });
+          } else if (typeof m === 'string') {
+            members.push({
+              name: m,
+              email: 'N/A',
+              sic: 'N/A',
+              phone: 'N/A',
+              year: 'N/A',
+              gender: 'N/A',
+              dept: 'N/A',
+              status: 'CONFIRMED',
+            });
+          }
+        });
+      }
+      return members;
+    };
+
+    // Calculate maximum teammate count across all teams for column-wise export
+    let maxTeammates = 0;
+    if (isTeamEvent) {
+      registrations.forEach(r => {
+        const mems = extractTeamMembers(r);
+        if (mems.length > maxTeammates) maxTeammates = mems.length;
+      });
+    }
+
+    // =========================================================================
+    // 1. PLAIN CSV EXPORT
+    // =========================================================================
+    if (format === 'csv') {
+      let csvHeaders = [];
+      const csvRows = [];
+
+      if (!isTeamEvent) {
+        // Individual Event CSV: 8 exact requested columns
+        csvHeaders = ['Timestamp', 'Name', 'SIC', 'Email', 'Phone No', 'Year', 'Gender', 'Department'];
+        registrations.forEach(r => {
+          const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+          const batch = r.participantUser?.batch;
+          const year = calculateYearFromBatch(batch, sic, r.year);
+          const gender = r.participantUser?.gender || 'N/A';
+          const dept = r.branch || 'N/A';
+          csvRows.push([
+            sanitizeCsvValue(formatTimestamp(r.registeredAt)),
+            sanitizeCsvValue(r.participantName),
+            sanitizeCsvValue(sic),
+            sanitizeCsvValue(r.participantEmail),
+            sanitizeCsvValue(r.phone || 'N/A'),
+            sanitizeCsvValue(year),
+            sanitizeCsvValue(gender),
+            sanitizeCsvValue(dept),
+          ].join(','));
+        });
+      } else if (teamFormat === 'columns') {
+        // Team Event CSV: Wide Columns per Member (Google Forms style)
+        csvHeaders = [
+          'Timestamp', 'Team Name', 'Team Size',
+          'Leader Name', 'Leader SIC', 'Leader Email', 'Leader Phone No', 'Leader Year', 'Leader Gender', 'Leader Department'
+        ];
+        for (let m = 2; m <= maxTeammates + 1; m++) {
+          csvHeaders.push(
+            `Member ${m} Name`, `Member ${m} SIC`, `Member ${m} Email`,
+            `Member ${m} Phone No`, `Member ${m} Year`, `Member ${m} Gender`, `Member ${m} Department`
+          );
+        }
+        csvHeaders.push('Status');
+
+        registrations.forEach(r => {
+          const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+          const batch = r.participantUser?.batch;
+          const year = calculateYearFromBatch(batch, sic, r.year);
+          const gender = r.participantUser?.gender || 'N/A';
+          const dept = r.branch || 'N/A';
+          const teammates = extractTeamMembers(r);
+          const teamSize = 1 + teammates.length;
+
+          const row = [
+            sanitizeCsvValue(formatTimestamp(r.registeredAt)),
+            sanitizeCsvValue(r.teamName || 'Team'),
+            sanitizeCsvValue(teamSize),
+            sanitizeCsvValue(r.participantName),
+            sanitizeCsvValue(sic),
+            sanitizeCsvValue(r.participantEmail),
+            sanitizeCsvValue(r.phone || 'N/A'),
+            sanitizeCsvValue(year),
+            sanitizeCsvValue(gender),
+            sanitizeCsvValue(dept),
+          ];
+
+          for (let i = 0; i < maxTeammates; i++) {
+            const member = teammates[i];
+            if (member) {
+              row.push(
+                sanitizeCsvValue(member.name),
+                sanitizeCsvValue(member.sic),
+                sanitizeCsvValue(member.email),
+                sanitizeCsvValue(member.phone),
+                sanitizeCsvValue(member.year),
+                sanitizeCsvValue(member.gender),
+                sanitizeCsvValue(member.dept)
+              );
+            } else {
+              row.push('""', '""', '""', '""', '""', '""', '""');
+            }
+          }
+
+          row.push(sanitizeCsvValue(r.status));
+          csvRows.push(row.join(','));
+        });
+      } else {
+        // Team Event CSV: Roster Format (1 Row per Participant) - Recommended
+        csvHeaders = [
+          'Timestamp', 'Team Name', 'Role', 'Participant Name', 'SIC',
+          'Email', 'Phone No', 'Year', 'Gender', 'Department', 'Team Size', 'Status'
+        ];
+
+        registrations.forEach(r => {
+          const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+          const batch = r.participantUser?.batch;
+          const year = calculateYearFromBatch(batch, sic, r.year);
+          const gender = r.participantUser?.gender || 'N/A';
+          const dept = r.branch || 'N/A';
+          const teammates = extractTeamMembers(r);
+          const teamSize = 1 + teammates.length;
+
+          // 1. Leader Row
+          csvRows.push([
+            sanitizeCsvValue(formatTimestamp(r.registeredAt)),
+            sanitizeCsvValue(r.teamName || 'Team'),
+            sanitizeCsvValue('Team Leader'),
+            sanitizeCsvValue(r.participantName),
+            sanitizeCsvValue(sic),
+            sanitizeCsvValue(r.participantEmail),
+            sanitizeCsvValue(r.phone || 'N/A'),
+            sanitizeCsvValue(year),
+            sanitizeCsvValue(gender),
+            sanitizeCsvValue(dept),
+            sanitizeCsvValue(teamSize),
+            sanitizeCsvValue(r.status),
+          ].join(','));
+
+          // 2. Member Rows
+          teammates.forEach((m, mIdx) => {
+            csvRows.push([
+              sanitizeCsvValue(formatTimestamp(r.registeredAt)),
+              sanitizeCsvValue(r.teamName || 'Team'),
+              sanitizeCsvValue(`Member ${mIdx + 2}`),
+              sanitizeCsvValue(m.name),
+              sanitizeCsvValue(m.sic),
+              sanitizeCsvValue(m.email),
+              sanitizeCsvValue(m.phone),
+              sanitizeCsvValue(m.year),
+              sanitizeCsvValue(m.gender),
+              sanitizeCsvValue(m.dept !== 'N/A' ? m.dept : dept),
+              sanitizeCsvValue(teamSize),
+              sanitizeCsvValue(m.status),
+            ].join(','));
+          });
+        });
+      }
+
+      const csvContent = '\uFEFF' + [csvHeaders.join(','), ...csvRows].join('\r\n');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}_Responses_${Date.now()}.csv"`);
+      return res.send(csvContent);
+    }
+
+    // =========================================================================
+    // 2. STYLED COLORED EXCEL SHEET (.xls with Office XML & CSS)
+    // =========================================================================
+    let excelHeaders = [];
+    let excelRowsHtml = '';
+    let totalParticipantsCount = 0;
+
+    if (!isTeamEvent) {
+      // Individual Event: 8 exact requested columns
+      excelHeaders = ['Timestamp', 'Name', 'SIC', 'Email', 'Phone No', 'Year', 'Gender', 'Department'];
+      totalParticipantsCount = registrations.length;
+
+      excelRowsHtml = registrations.map((r, index) => {
+        const isEven = index % 2 === 0;
+        const rowClass = isEven ? 'row-even' : 'row-odd';
+        const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+        const batch = r.participantUser?.batch;
+        const year = calculateYearFromBatch(batch, sic, r.year);
+        const gender = r.participantUser?.gender || 'N/A';
+        const dept = r.branch || 'N/A';
+
+        return `
+          <tr class="${rowClass}">
+            <td class="col-timestamp">${escapeHtml(formatTimestamp(r.registeredAt))}</td>
+            <td class="col-name">${escapeHtml(r.participantName)}</td>
+            <td class="col-sic">${escapeHtml(sic)}</td>
+            <td class="col-email">${escapeHtml(r.participantEmail)}</td>
+            <td class="col-phone">${escapeHtml(r.phone || 'N/A')}</td>
+            <td class="col-year">${escapeHtml(year)}</td>
+            <td class="col-gender">${escapeHtml(gender)}</td>
+            <td class="col-dept">${escapeHtml(dept)}</td>
+          </tr>
+        `;
+      }).join('\n');
+
+    } else if (teamFormat === 'columns') {
+      // Team Event: Columns-per-member (Google Forms style)
+      excelHeaders = [
+        'Timestamp', 'Team Name', 'Team Size',
+        'Leader Name', 'Leader SIC', 'Leader Email', 'Leader Phone No', 'Leader Year', 'Leader Gender', 'Leader Department'
+      ];
+      for (let m = 2; m <= maxTeammates + 1; m++) {
+        excelHeaders.push(
+          `Member ${m} Name`, `Member ${m} SIC`, `Member ${m} Email`,
+          `Member ${m} Phone No`, `Member ${m} Year`, `Member ${m} Gender`, `Member ${m} Department`
+        );
+      }
+      excelHeaders.push('Status');
+
+      let participantsTally = 0;
+      excelRowsHtml = registrations.map((r, index) => {
+        const isEven = index % 2 === 0;
+        const rowClass = isEven ? 'row-even' : 'row-odd';
+        const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+        const batch = r.participantUser?.batch;
+        const year = calculateYearFromBatch(batch, sic, r.year);
+        const gender = r.participantUser?.gender || 'N/A';
+        const dept = r.branch || 'N/A';
+        const teammates = extractTeamMembers(r);
+        const teamSize = 1 + teammates.length;
+        participantsTally += teamSize;
+
+        let memberCellsHtml = '';
+        for (let i = 0; i < maxTeammates; i++) {
+          const m = teammates[i];
+          if (m) {
+            memberCellsHtml += `
+              <td class="col-name">${escapeHtml(m.name)}</td>
+              <td class="col-sic">${escapeHtml(m.sic)}</td>
+              <td class="col-email">${escapeHtml(m.email)}</td>
+              <td class="col-phone">${escapeHtml(m.phone)}</td>
+              <td class="col-year">${escapeHtml(m.year)}</td>
+              <td class="col-gender">${escapeHtml(m.gender)}</td>
+              <td class="col-dept">${escapeHtml(m.dept)}</td>
+            `;
+          } else {
+            memberCellsHtml += `
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+              <td style="color:#cbd5e1; text-align:center;">-</td>
+            `;
+          }
+        }
+
+        return `
+          <tr class="${rowClass}">
+            <td class="col-timestamp">${escapeHtml(formatTimestamp(r.registeredAt))}</td>
+            <td class="col-team">${escapeHtml(r.teamName || 'Team')}</td>
+            <td style="text-align: center; font-weight: bold; color: #4338ca;">${teamSize}</td>
+            <td class="col-name">${escapeHtml(r.participantName)}</td>
+            <td class="col-sic">${escapeHtml(sic)}</td>
+            <td class="col-email">${escapeHtml(r.participantEmail)}</td>
+            <td class="col-phone">${escapeHtml(r.phone || 'N/A')}</td>
+            <td class="col-year">${escapeHtml(year)}</td>
+            <td class="col-gender">${escapeHtml(gender)}</td>
+            <td class="col-dept">${escapeHtml(dept)}</td>
+            ${memberCellsHtml}
+            <td style="text-align: center; font-weight: 600; color: #047857;">${escapeHtml(r.status)}</td>
+          </tr>
+        `;
+      }).join('\n');
+
+      totalParticipantsCount = participantsTally;
+
+    } else {
+      // Team Event: Roster Format (1 Row per Participant) - Recommended
+      excelHeaders = [
+        'Timestamp', 'Team Name', 'Role', 'Participant Name', 'SIC',
+        'Email', 'Phone No', 'Year', 'Gender', 'Department', 'Team Size', 'Status'
+      ];
+
+      const rowsList = [];
+      let participantsTally = 0;
+
+      registrations.forEach((r, teamIndex) => {
+        const isTeamEven = teamIndex % 2 === 0;
+        const teamBaseClass = isTeamEven ? 'team-even' : 'team-odd';
+
+        const sic = r.rollNumber || r.participantUser?.sicNo || 'N/A';
+        const batch = r.participantUser?.batch;
+        const year = calculateYearFromBatch(batch, sic, r.year);
+        const gender = r.participantUser?.gender || 'N/A';
+        const dept = r.branch || 'N/A';
+        const teammates = extractTeamMembers(r);
+        const teamSize = 1 + teammates.length;
+        participantsTally += teamSize;
+
+        // 1. Leader Row
+        rowsList.push(`
+          <tr class="${teamBaseClass} team-leader-row">
+            <td class="col-timestamp">${escapeHtml(formatTimestamp(r.registeredAt))}</td>
+            <td class="col-team">${escapeHtml(r.teamName || 'Team')}</td>
+            <td style="text-align: center;"><span class="badge-leader">Team Leader</span></td>
+            <td class="col-name">${escapeHtml(r.participantName)}</td>
+            <td class="col-sic">${escapeHtml(sic)}</td>
+            <td class="col-email">${escapeHtml(r.participantEmail)}</td>
+            <td class="col-phone">${escapeHtml(r.phone || 'N/A')}</td>
+            <td class="col-year">${escapeHtml(year)}</td>
+            <td class="col-gender">${escapeHtml(gender)}</td>
+            <td class="col-dept">${escapeHtml(dept)}</td>
+            <td style="text-align: center; font-weight: bold; color: #4338ca;">${teamSize}</td>
+            <td style="text-align: center; font-weight: 600; color: #047857;">${escapeHtml(r.status)}</td>
+          </tr>
+        `);
+
+        // 2. Teammates Rows
+        teammates.forEach((m, mIdx) => {
+          rowsList.push(`
+            <tr class="${teamBaseClass} team-member-row">
+              <td class="col-timestamp" style="color: #94a3b8;">${escapeHtml(formatTimestamp(r.registeredAt))}</td>
+              <td class="col-team-muted">${escapeHtml(r.teamName || 'Team')}</td>
+              <td style="text-align: center;"><span class="badge-member">Member ${mIdx + 2}</span></td>
+              <td class="col-name">${escapeHtml(m.name)}</td>
+              <td class="col-sic">${escapeHtml(m.sic)}</td>
+              <td class="col-email">${escapeHtml(m.email)}</td>
+              <td class="col-phone">${escapeHtml(m.phone)}</td>
+              <td class="col-year">${escapeHtml(m.year)}</td>
+              <td class="col-gender">${escapeHtml(m.gender)}</td>
+              <td class="col-dept">${escapeHtml(m.dept !== 'N/A' ? m.dept : dept)}</td>
+              <td style="text-align: center; color: #64748b;">${teamSize}</td>
+              <td style="text-align: center; font-weight: 600; color: #0284c7;">${escapeHtml(m.status)}</td>
+            </tr>
+          `);
+        });
+      });
+
+      excelRowsHtml = rowsList.join('\n');
+      totalParticipantsCount = participantsTally;
+    }
+
+    const excelHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <!--[if gte mso 9]>
+        <xml>
+          <x:ExcelWorkbook>
+            <x:ExcelWorksheets>
+              <x:ExcelWorksheet>
+                <x:Name>Responses</x:Name>
+                <x:WorksheetOptions>
+                  <x:DisplayGridlines/>
+                  <x:Selected/>
+                </x:WorksheetOptions>
+              </x:ExcelWorksheet>
+            </x:ExcelWorksheets>
+          </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          body { font-family: 'Calibri', 'Segoe UI', Arial, sans-serif; }
+          table { border-collapse: collapse; width: 100%; }
+          .banner-title {
+            background-color: #034694;
+            color: #ffffff;
+            font-size: 14pt;
+            font-weight: bold;
+            padding: 12px 14px;
+            text-align: left;
+            border: 1px solid #022b5c;
+          }
+          .banner-meta {
+            background-color: #f8fafc;
+            color: #475569;
+            font-size: 9.5pt;
+            padding: 8px 14px;
+            border-bottom: 2px solid #cbd5e1;
+          }
+          th {
+            background-color: #034694;
+            color: #ffffff;
+            font-size: 10.5pt;
+            font-weight: bold;
+            padding: 9px 12px;
+            text-align: center;
+            border: 1px solid #022b5c;
+            white-space: nowrap;
+          }
+          td {
+            font-size: 9.5pt;
+            color: #1e293b;
+            padding: 7px 11px;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+            mso-number-format: "\\@";
+          }
+          .row-even td { background-color: #f8fafc; }
+          .row-odd td { background-color: #ffffff; }
+
+          .team-even td { background-color: #ffffff; }
+          .team-odd td { background-color: #f8fafc; }
+          .team-leader-row td { border-top: 2px solid #034694 !important; }
+          .team-member-row td { border-top: 1px dashed #e2e8f0; }
+
+          .col-timestamp { text-align: center; color: #64748b; font-family: 'Consolas', monospace; font-size: 9pt; }
+          .col-name { font-weight: 600; color: #0f172a; text-align: left; }
+          .col-sic { text-align: center; font-family: 'Consolas', monospace; font-weight: 700; color: #034694; background-color: #eff6ff !important; }
+          .col-email { color: #0369a1; text-align: left; }
+          .col-phone { text-align: center; color: #334155; }
+          .col-year { text-align: center; font-weight: 700; color: #047857; background-color: #ecfdf5 !important; }
+          .col-gender { text-align: center; font-weight: 500; color: #475569; }
+          .col-dept { text-align: left; color: #1e293b; }
+          .col-team { text-align: left; color: #034694; font-weight: bold; font-size: 10pt; }
+          .col-team-muted { text-align: left; color: #64748b; font-size: 8.5pt; }
+
+          .badge-leader {
+            background-color: #ede9fe;
+            color: #5b21b6;
+            font-weight: bold;
+            font-size: 8.5pt;
+            padding: 3px 8px;
+            border: 1px solid #c4b5fd;
+            border-radius: 4px;
+            display: inline-block;
+          }
+          .badge-member {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            font-size: 8.5pt;
+            padding: 2px 7px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            display: inline-block;
+          }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr>
+            <td colspan="${excelHeaders.length}" class="banner-title">
+              SILICON WEST &bull; ${escapeHtml(event.title || 'Campus Event')} &mdash; ${isTeamEvent ? (teamFormat === 'columns' ? 'Team Form Responses' : 'Team Roster Sheet') : 'Participant Responses'}
+            </td>
+          </tr>
+          <tr>
+            <td colspan="${excelHeaders.length}" class="banner-meta">
+              Exported: ${formatTimestamp(new Date())} &bull; Total Entries: ${registrations.length} ${isTeamEvent ? `Teams (${totalParticipantsCount} Total Participants)` : 'Registrations'} &bull; Organizing Society: ${escapeHtml(event.club?.name || 'Silicon West')}
+            </td>
+          </tr>
+          <tr><td colspan="${excelHeaders.length}" style="height: 10px; border: none; background: #ffffff;"></td></tr>
+          <thead>
+            <tr>
+              ${excelHeaders.map(h => `<th>${escapeHtml(h)}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${excelRowsHtml}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    res.setHeader('Content-Type', 'application/vnd.ms-excel; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}_${isTeamEvent ? (teamFormat === 'columns' ? 'TeamResponses' : 'TeamRoster') : 'Responses'}_${Date.now()}.xls"`);
+    res.send(excelHtml);
   } catch (err) {
     console.error('Export registrations error:', err);
     res.status(500).json({ error: 'Failed to export registrations.' });

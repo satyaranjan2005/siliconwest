@@ -354,7 +354,7 @@ export function VerifyEmailForm({ className, ...props }) {
                       <Input
                         id="sicNo"
                         type="text"
-                        placeholder="e.g. 22BTECH042"
+                        placeholder="Enter your SIC number"
                         value={sicNo}
                         onChange={(e) => setSicNo(e.target.value.toUpperCase())}
                         className="pl-9 font-mono font-bold tracking-wider uppercase text-xs"

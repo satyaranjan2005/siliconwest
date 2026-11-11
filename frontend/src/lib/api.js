@@ -94,8 +94,11 @@ export const eventsApi = {
   update: (id, data) => api.put(`/events/${id}`, data),
   getRegistrations: (id, params = {}) => api.get(`/events/${id}/registrations`, { params }),
   getDashboardRegistrations: () => api.get('/events/dashboard/registrations'),
-  exportRegistrationsUrl: (id) => `${API_BASE}/events/${id}/export`,
-  downloadExport: (id) => api.get(`/events/${id}/export`, { responseType: 'blob' }),
+  exportRegistrationsUrl: (id, params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return `${API_BASE}/events/${id}/export${qs ? `?${qs}` : ''}`;
+  },
+  downloadExport: (id, params = {}) => api.get(`/events/${id}/export`, { params, responseType: 'blob' }),
 };
 
 // Registrations APIs

@@ -659,7 +659,7 @@ export default function CreateClubPage() {
                 type="text"
                 value={form.facultyCoordinator}
                 onChange={(e) => setForm({ ...form, facultyCoordinator: e.target.value })}
-                placeholder="e.g. Dr. Amrit Ranjan Mohanty"
+                placeholder="Faculty Coordinator Name"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#034694] focus:border-[#034694]"
               />
             </div>
@@ -750,7 +750,7 @@ export default function CreateClubPage() {
                 type="text"
                 value={form.secretary}
                 onChange={(e) => setForm({ ...form, secretary: e.target.value })}
-                placeholder="e.g. Siddharth Patnaik"
+                placeholder="Student Secretary Name"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#034694] focus:border-[#034694]"
               />
             </div>
@@ -841,7 +841,7 @@ export default function CreateClubPage() {
                 type="text"
                 value={form.jointSecretary}
                 onChange={(e) => setForm({ ...form, jointSecretary: e.target.value })}
-                placeholder="e.g. Ananya Das"
+                placeholder="Student Joint Secretary Name"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#034694] focus:border-[#034694]"
               />
             </div>
@@ -1022,7 +1022,7 @@ export default function CreateClubPage() {
                         type="text"
                         value={c.name}
                         onChange={(e) => updateCoordinator(index, 'name', e.target.value)}
-                        placeholder="e.g. Soumya Ranjan"
+                        placeholder="Student Full Name"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                         required
                       />

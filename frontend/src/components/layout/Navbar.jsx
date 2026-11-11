@@ -294,15 +294,6 @@ export default function Navbar() {
                   </div>
 
                   <div className="py-1">
-                    <Link
-                      href="/my-registrations"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2 px-3.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#034694] transition-colors"
-                    >
-                      <BookmarkCheck className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>My Registrations</span>
-                    </Link>
-
                     {isSuperAdmin && (
                       <Link
                         href="/dashboard"

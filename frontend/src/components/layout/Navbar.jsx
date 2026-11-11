@@ -165,7 +165,7 @@ export default function Navbar() {
         </nav>
 
         {/* Action Controls & User Profile */}
-        <div className="hidden sm:flex items-center gap-2.5">
+        <div className="hidden md:flex items-center gap-2.5">
           {isSuperAdmin && (
             <Link
               href="/dashboard"
@@ -357,10 +357,10 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => {
-                  setNotifOpen(!notifOpen);
+                  setNotifOpen((prev) => !prev);
                   if (mobileMenuOpen) setMobileMenuOpen(false);
                 }}
-                className="relative p-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+                className="relative p-2 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors touch-manipulation"
                 aria-label="View notifications"
               >
                 <Bell className="w-4 h-4" />
@@ -370,25 +370,95 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
+
+              {/* Mobile Notifications Dropdown */}
+              {notifOpen && (
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm bg-white rounded-2xl shadow-xl border border-slate-200 p-3 z-50 space-y-2">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2 px-1">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-[#034694]" />
+                      <span>Invitations ({pendingInvitations.length})</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setNotifOpen(false)}
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto space-y-2 py-1">
+                    {pendingInvitations.map((inv) => (
+                      <div key={inv.id} className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/60 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-xs font-bold text-slate-900">{inv.teamName}</p>
+                            <p className="text-[11px] text-slate-500">{inv.event?.title}</p>
+                          </div>
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-blue-100 text-[#034694]">
+                            Invite
+                          </span>
+                        </div>
+                        <div className="flex gap-1.5 pt-1">
+                          <button
+                            type="button"
+                            disabled={respondingId === inv.id}
+                            onClick={() => handleRespond(inv.id, 'ACCEPT')}
+                            className="flex-1 py-1 px-2 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            disabled={respondingId === inv.id}
+                            onClick={() => handleRespond(inv.id, 'DECLINE')}
+                            className="flex-1 py-1 px-2 rounded-lg bg-slate-200 text-slate-700 text-[11px] font-semibold hover:bg-slate-300 transition-colors"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           <button
-            onClick={() => {
-              setMobileMenuOpen(!mobileMenuOpen);
-              if (notifOpen) setNotifOpen(false);
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMobileMenuOpen((prev) => !prev);
+              setNotifOpen(false);
             }}
-            className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-colors touch-manipulation flex items-center justify-center"
             aria-label="Toggle Navigation Menu"
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-6 h-6 text-slate-800" /> : <Menu className="w-6 h-6 text-slate-800" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 space-y-3 animate-in slide-in-from-top-1 duration-150">
+        <div className="md:hidden w-full border-t border-slate-200 bg-white px-4 py-3 space-y-3 shadow-lg max-h-[calc(100vh-5rem)] overflow-y-auto">
+          {isAuthenticated && (
+            <div className="pb-2.5 mb-1 border-b border-slate-100 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#034694] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-900 truncate">{user?.name}</p>
+                <p className="text-[11px] text-slate-500 truncate">{user?.email}</p>
+                <span className="inline-block mt-0.5 text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded bg-blue-50 text-[#034694] border border-blue-100">
+                  {user?.role?.replace('_', ' ') || 'STUDENT'}
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
             {navLinks.map((link) => {
               const isActive =
@@ -402,10 +472,10 @@ export default function Navbar() {
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
                     isActive
                       ? 'text-[#034694] bg-blue-50 font-bold'
-                      : 'text-slate-700 hover:bg-slate-50'
+                      : 'text-slate-700 hover:bg-slate-50 active:bg-slate-100'
                   }`}
                 >
                   {Icon && <Icon className="w-4 h-4 opacity-70" />}
@@ -474,13 +544,14 @@ export default function Navbar() {
               </div>
             )}
 
-          {isAuthenticated ? (
+            {isAuthenticated ? (
               <button
+                type="button"
                 onClick={() => {
                   logout();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-2 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold text-center flex items-center justify-center gap-1.5"
+                className="w-full py-2 rounded-lg bg-rose-50 text-rose-600 text-xs font-semibold text-center flex items-center justify-center gap-1.5 hover:bg-rose-100 active:bg-rose-200 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out ({user?.name})</span>
@@ -490,14 +561,14 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg border border-slate-200 text-slate-800 text-xs font-semibold hover:bg-slate-50"
+                  className="w-full text-center py-2 rounded-lg border border-slate-200 text-slate-800 text-xs font-semibold hover:bg-slate-50 active:bg-slate-100"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg bg-[#034694] text-white text-xs font-semibold hover:bg-[#023168]"
+                  className="w-full text-center py-2 rounded-lg bg-[#034694] text-white text-xs font-semibold hover:bg-[#023168] active:bg-[#012247]"
                 >
                   Sign Up
                 </Link>

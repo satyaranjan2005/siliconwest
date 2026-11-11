@@ -88,9 +88,11 @@ jobs:
             npm run build
             cd ..
 
-            echo "🔄 Reloading PM2 Processes..."
-            pm2 startOrReload ecosystem.config.js --update-env
-            pm2 save
+            echo "Restarting PM2 Backend..."
+            pm2 restart backend --update-env
+
+            echo "Restarting PM2 Frontend..."
+            pm2 restart frontend --update-env
 
             echo "✅ Deployment complete! Status:"
             pm2 status

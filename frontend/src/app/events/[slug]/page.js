@@ -34,7 +34,7 @@ import {
   Tag,
   Edit3,
 } from 'lucide-react';
-import { eventsApi } from '@/lib/api';
+import { eventsApi, registrationsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import MarkdownView from '@/components/ui/markdown-view';
 
@@ -42,6 +42,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const slug = params?.slug;
   const [event, setEvent] = useState(null);
+  const [userReg, setUserReg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -54,6 +55,9 @@ export default function EventDetailPage() {
       try {
         const data = await eventsApi.getBySlug(slug);
         setEvent(data);
+        if (data.userRegistration) {
+          setUserReg(data.userRegistration);
+        }
       } catch (err) {
         setError(err.message || 'Event not found');
       } finally {
@@ -62,6 +66,41 @@ export default function EventDetailPage() {
     }
     loadEvent();
   }, [slug, user]);
+
+  // Client-side cross-verification with /api/registrations/my
+  useEffect(() => {
+    if (!user || !event) return;
+    if (event.userRegistration) {
+      setUserReg(event.userRegistration);
+      return;
+    }
+    async function checkMyRegistration() {
+      try {
+        const myRegs = await registrationsApi.getMy();
+        if (Array.isArray(myRegs)) {
+          const match = myRegs.find(
+            (r) =>
+              r.eventId === event.id ||
+              r.event?.id === event.id ||
+              (slug && r.event?.slug === slug)
+          );
+          if (match) {
+            setUserReg({
+              id: match.id,
+              teamName: match.teamName,
+              role: match.roleInEvent || (match.teamName ? 'Team Leader' : 'Participant'),
+              status: match.status,
+            });
+          }
+        }
+      } catch (err) {
+        // silent fail for public guests
+      }
+    }
+    checkMyRegistration();
+  }, [user, event, slug]);
+
+  const activeRegistration = event?.userRegistration || userReg;
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
@@ -849,11 +888,13 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
           {/* Right Column: Sticky Sidebar (4 Cols) */}
           <div className="lg:col-span-4 sticky top-20 space-y-4 order-1 lg:order-2">
             {/* If user is already registered */}
-            {event.userRegistration ? (
+            {activeRegistration ? (
               <div className="border border-emerald-200 rounded-2xl p-6 bg-emerald-50/50 space-y-3">
                 <div className="flex items-center gap-2 text-emerald-800">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <span className="font-semibold text-sm">You are Registered</span>
+                  <span className="font-semibold text-sm">
+                    {activeRegistration.teamName ? `Registered with Team "${activeRegistration.teamName}"` : 'You are Registered'}
+                  </span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Your seat is confirmed. Please carry your student ID card for reporting.
@@ -925,17 +966,17 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
               </div>
 
               {/* Action Button */}
-              {event.userRegistration ? (
+              {activeRegistration ? (
                 <div className="space-y-2">
                   <button
                     type="button"
                     disabled
-                    className="w-full py-3 bg-emerald-50 text-emerald-800 border border-emerald-300/80 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-2xs"
+                    className="w-full py-3 bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-2xs"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="truncate">
-                      {event.userRegistration.teamName
-                        ? `Registered (${event.userRegistration.teamName})`
+                      {activeRegistration.teamName
+                        ? `Registered (${activeRegistration.teamName})`
                         : 'Already Registered'}
                     </span>
                   </button>

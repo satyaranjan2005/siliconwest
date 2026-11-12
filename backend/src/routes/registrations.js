@@ -4,6 +4,7 @@ const prisma = require('../db');
 const {
   sendRegistrationConfirmationEmail,
   sendTeamInvitationEmail,
+  generatePassNo,
 } = require('../services/emailService');
 const {
   authenticate,
@@ -257,9 +258,14 @@ router.post('/', authenticate, async (req, res) => {
       }
     }
 
+    const passCode = generatePassNo(result.id);
+
     res.status(201).json({
       message: 'Registration confirmed successfully!',
-      registration: result
+      registration: {
+        ...result,
+        passCode
+      }
     });
   } catch (err) {
     if (err instanceof z.ZodError) {
@@ -449,9 +455,12 @@ router.get('/my', authenticate, async (req, res) => {
       }
     });
 
-    const allRegistrations = Array.from(directRegMap.values()).sort(
-      (a, b) => new Date(b.registeredAt) - new Date(a.registeredAt)
-    );
+    const allRegistrations = Array.from(directRegMap.values())
+      .map((r) => ({
+        ...r,
+        passCode: generatePassNo(r.id),
+      }))
+      .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
 
     res.json(allRegistrations);
   } catch (err) {
@@ -535,6 +544,62 @@ router.patch('/:id/status', authenticate, async (req, res) => {
   } catch (err) {
     console.error('Update registration status error:', err);
     res.status(500).json({ error: 'Failed to update registration status.' });
+  }
+});
+
+// POST /api/registrations/:id/resend-pass - Resend official coded pass to participant email
+router.post('/:id/resend-pass', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const registration = await prisma.registration.findUnique({
+      where: { id },
+      include: {
+        event: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            venue: true,
+            startsAt: true,
+            endsAt: true,
+            clubId: true,
+            club: { select: { name: true } }
+          }
+        }
+      }
+    });
+
+    if (!registration) {
+      return res.status(404).json({ error: 'Registration pass not found.' });
+    }
+
+    const isOwner =
+      (registration.participantUserId && registration.participantUserId === req.user.id) ||
+      registration.participantEmail.toLowerCase() === req.user.email.toLowerCase();
+    const isAdmin = canUserManageClub(req.user, registration.event.clubId);
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Forbidden: You cannot resend this pass.' });
+    }
+
+    const passNo = generatePassNo(registration.id);
+
+    await sendRegistrationConfirmationEmail({
+      to: registration.participantEmail,
+      name: registration.participantName,
+      event: registration.event,
+      registration,
+      teamName: registration.teamName,
+      teamMembers: registration.teamMembers,
+    });
+
+    res.json({
+      message: `Coded admission pass (${passNo}) dispatched to ${registration.participantEmail}.`,
+      passCode: passNo
+    });
+  } catch (err) {
+    console.error('Resend pass error:', err);
+    res.status(500).json({ error: 'Failed to dispatch admission pass.' });
   }
 });
 

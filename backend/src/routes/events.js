@@ -161,26 +161,75 @@ router.get('/', optionalAuth, async (req, res) => {
       }
     });
 
-    const sanitized = events.map(e => ({
-      id: e.id,
-      title: e.title,
-      slug: e.slug,
-      summary: e.summary,
-      bannerUrl: e.bannerUrl,
-      category: e.category,
-      venue: e.venue,
-      onlineMeetingUrl: e.onlineMeetingUrl,
-      startsAt: e.startsAt,
-      endsAt: e.endsAt,
-      registrationDeadline: e.registrationDeadline,
-      capacity: e.capacity,
-      status: e.status,
-      club: e.club,
-      confirmedRegistrationsCount: e._count.registrations,
-      isRegistrationOpen: e.status === 'PUBLISHED' &&
-        new Date(e.registrationDeadline) > now &&
-        (!e.capacity || e._count.registrations < e.capacity)
-    }));
+    // If user is authenticated, compute the set of event IDs they are already registered for
+    const registeredEventMap = new Map();
+    if (req.user) {
+      const userEmail = (req.user.email || '').toLowerCase().trim();
+      const userId = req.user.id;
+
+      const directRegs = await prisma.registration.findMany({
+        where: {
+          status: { in: ['CONFIRMED', 'ATTENDED'] },
+          OR: [
+            { participantUserId: userId },
+            { participantEmail: { equals: userEmail, mode: 'insensitive' } }
+          ]
+        },
+        select: { eventId: true, teamName: true, status: true }
+      });
+      directRegs.forEach((r) =>
+        registeredEventMap.set(r.eventId, {
+          teamName: r.teamName,
+          role: r.teamName ? 'Team Leader' : 'Participant',
+        })
+      );
+
+      const invites = await prisma.teamInvitation.findMany({
+        where: {
+          status: { in: ['ACCEPTED', 'PENDING'] },
+          OR: [
+            { inviteeUserId: userId },
+            { inviteeEmail: { equals: userEmail, mode: 'insensitive' } }
+          ],
+          registration: { status: 'CONFIRMED' }
+        },
+        select: { eventId: true, teamName: true, status: true }
+      });
+      invites.forEach((i) => {
+        if (!registeredEventMap.has(i.eventId)) {
+          registeredEventMap.set(i.eventId, {
+            teamName: i.teamName,
+            role: 'Team Member',
+          });
+        }
+      });
+    }
+
+    const sanitized = events.map(e => {
+      const reg = registeredEventMap.get(e.id);
+      return {
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        summary: e.summary,
+        bannerUrl: e.bannerUrl,
+        category: e.category,
+        venue: e.venue,
+        onlineMeetingUrl: e.onlineMeetingUrl,
+        startsAt: e.startsAt,
+        endsAt: e.endsAt,
+        registrationDeadline: e.registrationDeadline,
+        capacity: e.capacity,
+        status: e.status,
+        club: e.club,
+        confirmedRegistrationsCount: e._count.registrations,
+        isRegistrationOpen: e.status === 'PUBLISHED' &&
+          new Date(e.registrationDeadline) > now &&
+          (!e.capacity || e._count.registrations < e.capacity),
+        isAlreadyRegistered: Boolean(reg),
+        userRegistration: reg || null,
+      };
+    });
 
     res.json(sanitized);
   } catch (err) {
@@ -334,7 +383,7 @@ router.get('/:slug', optionalAuth, async (req, res) => {
       const direct = await prisma.registration.findFirst({
         where: {
           eventId: event.id,
-          status: 'CONFIRMED',
+          status: { in: ['CONFIRMED', 'ATTENDED'] },
           OR: [
             { participantUserId: userId },
             { participantEmail: { equals: userEmail, mode: 'insensitive' } }
@@ -360,11 +409,11 @@ router.get('/:slug', optionalAuth, async (req, res) => {
           isLeader: Boolean(direct.teamName)
         };
       } else {
-        // 2. Check if accepted member in an event's registered team
+        // 2. Check if accepted or pending member in an event's registered team
         const invite = await prisma.teamInvitation.findFirst({
           where: {
             eventId: event.id,
-            status: 'ACCEPTED',
+            status: { in: ['ACCEPTED', 'PENDING'] },
             OR: [
               { inviteeUserId: userId },
               { inviteeEmail: { equals: userEmail, mode: 'insensitive' } }
@@ -382,15 +431,49 @@ router.get('/:slug', optionalAuth, async (req, res) => {
           }
         });
 
-        if (invite && invite.registration && invite.registration.status === 'CONFIRMED') {
+        if (invite && invite.registration && ['CONFIRMED', 'ATTENDED'].includes(invite.registration.status)) {
           userRegistration = {
             id: invite.registration.id,
             teamName: invite.teamName || invite.registration.teamName,
             role: 'Team Member',
-            status: 'CONFIRMED',
+            status: invite.status === 'ACCEPTED' ? 'CONFIRMED' : 'INVITED',
             registeredAt: invite.registration.registeredAt,
             isLeader: false
           };
+        } else {
+          // 3. Fallback: check if user's email is recorded in any confirmed team registration's teamMembers JSON
+          const teamRegistrations = await prisma.registration.findMany({
+            where: {
+              eventId: event.id,
+              status: { in: ['CONFIRMED', 'ATTENDED'] },
+              teamName: { not: null }
+            },
+            select: {
+              id: true,
+              teamName: true,
+              registeredAt: true,
+              teamMembers: true
+            }
+          });
+
+          for (const reg of teamRegistrations) {
+            if (Array.isArray(reg.teamMembers)) {
+              const matchedMember = reg.teamMembers.find(
+                (m) => m && m.email && m.email.toLowerCase().trim() === userEmail
+              );
+              if (matchedMember) {
+                userRegistration = {
+                  id: reg.id,
+                  teamName: reg.teamName,
+                  role: 'Team Member',
+                  status: 'CONFIRMED',
+                  registeredAt: reg.registeredAt,
+                  isLeader: false
+                };
+                break;
+              }
+            }
+          }
         }
       }
     }

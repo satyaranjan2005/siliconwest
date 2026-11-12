@@ -575,7 +575,7 @@ async function sendRegistrationConfirmationEmail({
     contentHtml,
     callToAction: {
       label: 'View Digital Pass in Portal',
-      url: `${appUrl}/dashboard/registrations`,
+      url: `${appUrl}/my-registrations`,
     },
     securityNote: 'This admission pass is non-transferable. Misuse or falsification of entry documents violates campus regulations.',
   });

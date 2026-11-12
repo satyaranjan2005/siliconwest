@@ -107,6 +107,7 @@ export const registrationsApi = {
   getMy: () => api.get('/registrations/my'),
   cancel: (id) => api.patch(`/registrations/${id}/cancel`),
   updateStatus: (id, status) => api.patch(`/registrations/${id}/status`, { status }),
+  resendPass: (id) => api.post(`/registrations/${id}/resend-pass`),
 };
 
 // Users APIs

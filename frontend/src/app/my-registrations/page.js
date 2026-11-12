@@ -34,6 +34,14 @@ import {
 import { registrationsApi, invitationsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
+export function getCodedPass(reg) {
+  if (reg?.passCode) return reg.passCode;
+  const id = reg?.id || '';
+  const year = new Date(reg?.registeredAt || Date.now()).getFullYear() || 2026;
+  const clean = id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase();
+  return `SW-PASS-${year}-${clean || '000000'}`;
+}
+
 function MyRegistrationsContent() {
   const searchParams = useSearchParams();
   const registeredHighlightId = searchParams.get('registered') || '';
@@ -48,6 +56,8 @@ function MyRegistrationsContent() {
   const [copiedId, setCopiedId] = useState(null);
   const [passModalReg, setPassModalReg] = useState(null);
   const [expandedRegs, setExpandedRegs] = useState({});
+  const [resendingPassId, setResendingPassId] = useState(null);
+  const [resendSuccess, setResendSuccess] = useState(null);
 
   const loadData = async () => {
     try {
@@ -130,6 +140,19 @@ function MyRegistrationsContent() {
 
   const handlePrintPass = () => {
     window.print();
+  };
+
+  const handleResendPass = async (id) => {
+    try {
+      setResendingPassId(id);
+      const res = await registrationsApi.resendPass(id);
+      setResendSuccess(res.message || 'Pass dispatched to your registered email.');
+      setTimeout(() => setResendSuccess(null), 4000);
+    } catch (err) {
+      alert(err.message || 'Failed to dispatch admission pass.');
+    } finally {
+      setResendingPassId(null);
+    }
   };
 
   if (authLoading) {
@@ -460,13 +483,13 @@ function MyRegistrationsContent() {
                             <span>Registered Student Profile</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
-                            <span>Ref:</span>
-                            <span className="font-bold text-slate-800">{reg.id.slice(0, 12)}...</span>
+                            <span>Pass:</span>
+                            <span className="font-bold text-[#034694]">{getCodedPass(reg)}</span>
                             <button
                               type="button"
-                              onClick={(e) => handleCopy(reg.id, reg.id, e)}
+                              onClick={(e) => handleCopy(getCodedPass(reg), reg.id, e)}
                               className="p-1 hover:bg-slate-100 rounded text-slate-400 hover:text-slate-700 transition-colors"
-                              title="Copy Full Pass ID"
+                              title="Copy Coded Pass Number"
                             >
                               {copiedId === reg.id ? (
                                 <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -798,31 +821,54 @@ function MyRegistrationsContent() {
                 </div>
 
                 {/* Pass Code / QR / Verification Stamp */}
-                <div className="p-4 bg-slate-900 text-white rounded-2xl flex items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
-                      Official Pass Ref Code
-                    </span>
-                    <div className="font-mono text-sm sm:text-base font-bold text-amber-400 tracking-wider">
-                      {passModalReg.id}
-                    </div>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
-                      Present this pass along with your physical College ID card at entry.
-                    </span>
-                  </div>
-                  <div className="bg-white p-2 rounded-xl shrink-0">
-                    <div className="w-12 h-12 bg-slate-900 rounded-lg p-1 flex flex-col justify-between">
-                      <div className="flex justify-between">
-                        <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
-                        <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
+                <div className="p-4 bg-slate-900 text-white rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400 block">
+                        Official Coded Pass Number
+                      </span>
+                      <div className="font-mono text-base sm:text-lg font-black text-amber-400 tracking-wider">
+                        {getCodedPass(passModalReg)}
                       </div>
-                      <div className="w-2 h-2 bg-amber-400 mx-auto rounded-full" />
-                      <div className="flex justify-between">
-                        <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
-                        <div className="w-2.5 h-2.5 bg-white rounded-2xs self-end" />
+                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                        Present this pass along with your physical College ID card at entry.
+                      </span>
+                    </div>
+                    <div className="bg-white p-2 rounded-xl shrink-0">
+                      <div className="w-12 h-12 bg-slate-900 rounded-lg p-1 flex flex-col justify-between">
+                        <div className="flex justify-between">
+                          <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
+                          <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
+                        </div>
+                        <div className="w-2 h-2 bg-amber-400 mx-auto rounded-full" />
+                        <div className="flex justify-between">
+                          <div className="w-2.5 h-2.5 bg-white rounded-2xs" />
+                          <div className="w-2.5 h-2.5 bg-white rounded-2xs self-end" />
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-mono text-slate-500 truncate">
+                      UUID: {passModalReg.id}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleResendPass(passModalReg.id)}
+                      disabled={resendingPassId === passModalReg.id}
+                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800 text-amber-300 text-[11px] font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0"
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>{resendingPassId === passModalReg.id ? 'Sending...' : 'Send Pass to Email'}</span>
+                    </button>
+                  </div>
+
+                  {resendSuccess && (
+                    <div className="p-2 rounded-lg bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-medium text-center">
+                      {resendSuccess}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

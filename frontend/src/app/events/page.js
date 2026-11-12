@@ -21,7 +21,8 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
-import { eventsApi } from '@/lib/api';
+import { eventsApi, registrationsApi } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 // Helper: category visual styles
 const getCategoryStyle = (category) => {
@@ -77,6 +78,33 @@ export default function EventsPage() {
   // Calendar specific state
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
+  const [myRegisteredEventIds, setMyRegisteredEventIds] = useState(new Set());
+
+  const { user } = useAuth();
+
+  // Load user registrations for highlighting
+  useEffect(() => {
+    if (!user) {
+      setMyRegisteredEventIds(new Set());
+      return;
+    }
+    async function loadMyRegistrations() {
+      try {
+        const myRegs = await registrationsApi.getMy();
+        if (Array.isArray(myRegs)) {
+          const ids = new Set();
+          myRegs.forEach((r) => {
+            if (r.eventId) ids.add(r.eventId);
+            if (r.event?.id) ids.add(r.event.id);
+          });
+          setMyRegisteredEventIds(ids);
+        }
+      } catch (err) {
+        // silent
+      }
+    }
+    loadMyRegistrations();
+  }, [user]);
 
   // Fetch events from backend API
   useEffect(() => {
@@ -114,7 +142,7 @@ export default function EventsPage() {
       }
     }
     fetchEvents();
-  }, [search, category, timeframe]);
+  }, [search, category, timeframe, user]);
 
   const categories = ['ALL', 'Technical', 'Cultural', 'Sports', 'Media & Arts'];
 
@@ -576,7 +604,12 @@ export default function EventsPage() {
                                     </div>
 
                                     <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-slate-50">
-                                      {isFull ? (
+                                      {event.isAlreadyRegistered || myRegisteredEventIds.has(event.id) ? (
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                          Registered
+                                        </span>
+                                      ) : isFull ? (
                                         <span className="text-[10px] sm:text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
                                           Capacity Full
                                         </span>
@@ -594,7 +627,11 @@ export default function EventsPage() {
                                         href={`/events/${event.slug}`}
                                         className="inline-flex items-center gap-1 text-xs font-bold text-[#034694] hover:underline"
                                       >
-                                        <span>View Event</span>
+                                        <span>
+                                          {event.isAlreadyRegistered || myRegisteredEventIds.has(event.id)
+                                            ? 'View Pass'
+                                            : 'View Event'}
+                                        </span>
                                         <ArrowRight className="w-3.5 h-3.5" />
                                       </Link>
                                     </div>
@@ -914,13 +951,23 @@ export default function EventsPage() {
                                     <span className="truncate max-w-[150px]">{ev.venue}</span>
                                   </div>
 
-                                  <Link
-                                    href={`/events/${ev.slug}`}
-                                    className="text-xs font-semibold text-[#034694] hover:underline flex items-center gap-1"
-                                  >
-                                    <span>View &amp; Register</span>
-                                    <ArrowRight className="w-3 h-3" />
-                                  </Link>
+                                  {ev.isAlreadyRegistered || myRegisteredEventIds.has(ev.id) ? (
+                                    <Link
+                                      href={`/events/${ev.slug}`}
+                                      className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1 hover:bg-emerald-100 transition-colors"
+                                    >
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                      <span>Registered (Pass)</span>
+                                    </Link>
+                                  ) : (
+                                    <Link
+                                      href={`/events/${ev.slug}`}
+                                      className="text-xs font-semibold text-[#034694] hover:underline flex items-center gap-1"
+                                    >
+                                      <span>View &amp; Register</span>
+                                      <ArrowRight className="w-3 h-3" />
+                                    </Link>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1007,7 +1054,12 @@ export default function EventsPage() {
                           </span>
                         </div>
 
-                        {isFull ? (
+                        {event.isAlreadyRegistered || myRegisteredEventIds.has(event.id) ? (
+                          <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Registered
+                          </span>
+                        ) : isFull ? (
                           <span className="text-[11px] text-rose-600 font-medium">
                             Full
                           </span>

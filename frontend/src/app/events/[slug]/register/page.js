@@ -98,6 +98,43 @@ export default function EventRegisterPage() {
     fetchEvent();
   }, [slug, user]);
 
+  const [userReg, setUserReg] = useState(null);
+
+  // Client-side cross-verification with /api/registrations/my
+  useEffect(() => {
+    if (!isAuthenticated || !event) return;
+    if (event.userRegistration) {
+      setUserReg(event.userRegistration);
+      return;
+    }
+    async function checkMyRegistration() {
+      try {
+        const myRegs = await registrationsApi.getMy();
+        if (Array.isArray(myRegs)) {
+          const match = myRegs.find(
+            (r) =>
+              r.eventId === event.id ||
+              r.event?.id === event.id ||
+              (slug && r.event?.slug === slug)
+          );
+          if (match) {
+            setUserReg({
+              id: match.id,
+              teamName: match.teamName,
+              role: match.roleInEvent || (match.teamName ? 'Team Leader' : 'Participant'),
+              status: match.status,
+            });
+          }
+        }
+      } catch (err) {
+        // silent
+      }
+    }
+    checkMyRegistration();
+  }, [isAuthenticated, event, slug]);
+
+  const activeRegistration = event?.userRegistration || userReg;
+
   // Load pending invitations for current student
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -217,7 +254,7 @@ export default function EventRegisterPage() {
       return;
     }
 
-    if (event?.userRegistration) {
+    if (activeRegistration) {
       setFormError('You (or your team) are already registered for this event. View your pass in My Registrations.');
       return;
     }
@@ -478,10 +515,11 @@ export default function EventRegisterPage() {
               <div className="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block">
-                    Registration ID / Pass Code
+                    Official Coded Pass Number
                   </span>
-                  <div className="font-mono text-sm sm:text-base font-bold text-amber-400 tracking-wider">
-                    {successRegistration.id || `REG-${Date.now().toString(36).toUpperCase()}`}
+                  <div className="font-mono text-base sm:text-lg font-black text-amber-400 tracking-wider">
+                    {successRegistration.passCode ||
+                      `SW-PASS-${new Date().getFullYear()}-${(successRegistration.id || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 8).toUpperCase()}`}
                   </div>
                   <span className="text-[10px] text-slate-400">
                     Carry your physical Silicon student identity card during check-in.
@@ -708,15 +746,15 @@ export default function EventRegisterPage() {
                 </div>
 
                 {/* Already Registered Notification Banner */}
-                {event.userRegistration && (
+                {activeRegistration && (
                   <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-7 shadow-2xs space-y-3">
                     <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
                       <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                       <span>You Are Already Registered for This Event</span>
                     </div>
                     <p className="text-xs text-emerald-800 leading-relaxed">
-                      {event.userRegistration.teamName
-                        ? `You are registered as ${event.userRegistration.role || 'Member'} of Team "${event.userRegistration.teamName}".`
+                      {activeRegistration.teamName
+                        ? `You are registered as ${activeRegistration.role || 'Member'} of Team "${activeRegistration.teamName}".`
                         : 'Your individual entry pass has been confirmed.'}{' '}
                       Further registrations for this event are locked for your account.
                     </p>
@@ -821,14 +859,14 @@ export default function EventRegisterPage() {
                       <button
                         type="button"
                         onClick={handleRegister}
-                        disabled={submitting || isClosed || Boolean(event.userRegistration)}
+                        disabled={submitting || isClosed || Boolean(activeRegistration)}
                         className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
-                          event.userRegistration
+                          activeRegistration
                             ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
                             : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
                         }`}
                       >
-                        {event.userRegistration ? (
+                        {activeRegistration ? (
                           <>
                             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                             <span>Already Registered &bull; Registration Disabled</span>
@@ -1015,14 +1053,14 @@ export default function EventRegisterPage() {
                       <button
                         type="button"
                         onClick={handleRegister}
-                        disabled={submitting || isClosed || Boolean(event.userRegistration)}
+                        disabled={submitting || isClosed || Boolean(activeRegistration)}
                         className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
-                          event.userRegistration
+                          activeRegistration
                             ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
                             : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
                         }`}
                       >
-                        {event.userRegistration ? (
+                        {activeRegistration ? (
                           <>
                             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                             <span>

@@ -96,7 +96,7 @@ export default function EventRegisterPage() {
       }
     }
     fetchEvent();
-  }, [slug]);
+  }, [slug, user]);
 
   // Load pending invitations for current student
   useEffect(() => {
@@ -214,6 +214,11 @@ export default function EventRegisterPage() {
 
     if (!user) {
       router.push(`/login?redirect=/events/${event.slug}/register`);
+      return;
+    }
+
+    if (event?.userRegistration) {
+      setFormError('You (or your team) are already registered for this event. View your pass in My Registrations.');
       return;
     }
 
@@ -702,6 +707,31 @@ export default function EventRegisterPage() {
                   </div>
                 </div>
 
+                {/* Already Registered Notification Banner */}
+                {event.userRegistration && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 sm:p-7 shadow-2xs space-y-3">
+                    <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <span>You Are Already Registered for This Event</span>
+                    </div>
+                    <p className="text-xs text-emerald-800 leading-relaxed">
+                      {event.userRegistration.teamName
+                        ? `You are registered as ${event.userRegistration.role || 'Member'} of Team "${event.userRegistration.teamName}".`
+                        : 'Your individual entry pass has been confirmed.'}{' '}
+                      Further registrations for this event are locked for your account.
+                    </p>
+                    <div className="pt-2">
+                      <Link
+                        href="/my-registrations"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
+                      >
+                        <span>View Official Pass in My Registrations</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
                 {/* Participation Format Configuration */}
                 <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-2xs space-y-6">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -791,10 +821,19 @@ export default function EventRegisterPage() {
                       <button
                         type="button"
                         onClick={handleRegister}
-                        disabled={submitting || isClosed}
-                        className="w-full py-4 bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+                        disabled={submitting || isClosed || Boolean(event.userRegistration)}
+                        className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
+                          event.userRegistration
+                            ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
+                            : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
+                        }`}
                       >
-                        {submitting ? (
+                        {event.userRegistration ? (
+                          <>
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                            <span>Already Registered &bull; Registration Disabled</span>
+                          </>
+                        ) : submitting ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
                             <span>Confirming Participation...</span>
@@ -976,10 +1015,23 @@ export default function EventRegisterPage() {
                       <button
                         type="button"
                         onClick={handleRegister}
-                        disabled={submitting || isClosed}
-                        className="w-full py-4 bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2"
+                        disabled={submitting || isClosed || Boolean(event.userRegistration)}
+                        className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
+                          event.userRegistration
+                            ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
+                            : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
+                        }`}
                       >
-                        {submitting ? (
+                        {event.userRegistration ? (
+                          <>
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                            <span>
+                              {event.userRegistration.teamName
+                                ? `Team "${event.userRegistration.teamName}" Registered`
+                                : 'Already Registered'} &bull; Disabled
+                            </span>
+                          </>
+                        ) : submitting ? (
                           <>
                             <Loader2 className="w-4 h-4 animate-spin" />
                             <span>Registering Team &amp; Sending Invites...</span>

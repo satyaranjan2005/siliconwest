@@ -104,15 +104,14 @@ router.post('/', authenticate, async (req, res) => {
       const existing = await tx.registration.findFirst({
         where: {
           eventId: data.eventId,
-          participantEmail: normalizedEmail,
-          status: 'CONFIRMED'
+          participantEmail: { equals: normalizedEmail, mode: 'insensitive' }
         }
       });
 
-      if (existing) {
+      if (existing && existing.status === 'CONFIRMED') {
         throw {
           code: 'DUPLICATE_REGISTRATION',
-          message: 'This email address is already registered for this event.'
+          message: 'This email address is already registered for this event. View your pass in My Registrations.'
         };
       }
 
@@ -130,38 +129,65 @@ router.post('/', authenticate, async (req, res) => {
         }
       }
 
-      // 6. Create registration
-      const newRegistration = await tx.registration.create({
-        data: {
-          eventId: data.eventId,
-          participantUserId: req.user ? req.user.id : null,
-          participantName,
-          participantEmail: normalizedEmail,
-          collegeName: data.collegeName ? data.collegeName.trim() : 'Silicon Institute of Technology',
-          rollNumber: data.rollNumber ? data.rollNumber.trim() : null,
-          phone: data.phone ? data.phone.trim() : null,
-          branch: data.branch ? data.branch.trim() : null,
-          year: data.year ? data.year.trim() : null,
-          teamName: data.teamName ? data.teamName.trim() : null,
-          teamMembers: data.teamMembers || null,
-          status: 'CONFIRMED',
-        },
-        include: {
-          event: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-              venue: true,
-              startsAt: true,
-              endsAt: true,
-              club: {
-                select: { name: true }
+      // 6. Create or Reactivate registration (handles re-registration if previously cancelled)
+      const registrationPayload = {
+        participantUserId: req.user ? req.user.id : (existing ? existing.participantUserId : null),
+        participantName,
+        participantEmail: normalizedEmail,
+        collegeName: data.collegeName ? data.collegeName.trim() : 'Silicon Institute of Technology',
+        rollNumber: data.rollNumber ? data.rollNumber.trim() : null,
+        phone: data.phone ? data.phone.trim() : null,
+        branch: data.branch ? data.branch.trim() : null,
+        year: data.year ? data.year.trim() : null,
+        teamName: data.teamName ? data.teamName.trim() : null,
+        teamMembers: data.teamMembers || null,
+        status: 'CONFIRMED',
+      };
+
+      const newRegistration = existing
+        ? await tx.registration.update({
+            where: { id: existing.id },
+            data: {
+              ...registrationPayload,
+              registeredAt: new Date(),
+            },
+            include: {
+              event: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                  venue: true,
+                  startsAt: true,
+                  endsAt: true,
+                  club: {
+                    select: { name: true }
+                  }
+                }
               }
             }
-          }
-        }
-      });
+          })
+        : await tx.registration.create({
+            data: {
+              eventId: data.eventId,
+              ...registrationPayload,
+            },
+            include: {
+              event: {
+                select: {
+                  id: true,
+                  title: true,
+                  slug: true,
+                  venue: true,
+                  startsAt: true,
+                  endsAt: true,
+                  club: {
+                    select: { name: true }
+                  }
+                }
+              }
+            }
+          });
 
       // 7. If Team Registration, dispatch team invitation requests to all teammates
       if (data.teamName && Array.isArray(data.teamMembers)) {
@@ -242,6 +268,12 @@ router.post('/', authenticate, async (req, res) => {
           ? `${err.errors[0].path.join('.') || 'Field'}: ${err.errors[0].message}`
           : 'Validation failed';
       return res.status(400).json({ error: `Validation failed (${issueMsg})`, details: err.errors });
+    }
+    if (err.code === 'P2002') {
+      return res.status(409).json({
+        error: 'You are already registered for this event. View your pass in My Registrations.',
+        code: 'DUPLICATE_REGISTRATION'
+      });
     }
     if (err.code) {
       const statusMap = {

@@ -324,11 +324,84 @@ router.get('/:slug', optionalAuth, async (req, res) => {
     else if (isDeadlinePassed) registrationCloseReason = 'Registration deadline has passed';
     else if (isFull) registrationCloseReason = 'Event capacity reached (Sold out)';
 
+    // Check if current user (or their team) is already registered for this event
+    let userRegistration = null;
+    if (req.user) {
+      const userEmail = (req.user.email || '').toLowerCase().trim();
+      const userId = req.user.id;
+
+      // 1. Direct registration (individual or team leader)
+      const direct = await prisma.registration.findFirst({
+        where: {
+          eventId: event.id,
+          status: 'CONFIRMED',
+          OR: [
+            { participantUserId: userId },
+            { participantEmail: { equals: userEmail, mode: 'insensitive' } }
+          ]
+        },
+        select: {
+          id: true,
+          status: true,
+          teamName: true,
+          registeredAt: true,
+          participantName: true,
+          participantEmail: true,
+        }
+      });
+
+      if (direct) {
+        userRegistration = {
+          id: direct.id,
+          teamName: direct.teamName,
+          role: direct.teamName ? 'Team Leader' : 'Participant',
+          status: direct.status,
+          registeredAt: direct.registeredAt,
+          isLeader: Boolean(direct.teamName)
+        };
+      } else {
+        // 2. Check if accepted member in an event's registered team
+        const invite = await prisma.teamInvitation.findFirst({
+          where: {
+            eventId: event.id,
+            status: 'ACCEPTED',
+            OR: [
+              { inviteeUserId: userId },
+              { inviteeEmail: { equals: userEmail, mode: 'insensitive' } }
+            ]
+          },
+          include: {
+            registration: {
+              select: {
+                id: true,
+                status: true,
+                teamName: true,
+                registeredAt: true
+              }
+            }
+          }
+        });
+
+        if (invite && invite.registration && invite.registration.status === 'CONFIRMED') {
+          userRegistration = {
+            id: invite.registration.id,
+            teamName: invite.teamName || invite.registration.teamName,
+            role: 'Team Member',
+            status: 'CONFIRMED',
+            registeredAt: invite.registration.registeredAt,
+            isLeader: false
+          };
+        }
+      }
+    }
+
     res.json({
       ...event,
       confirmedRegistrationsCount: confirmedCount,
       isRegistrationOpen,
       registrationCloseReason,
+      userRegistration,
+      isAlreadyRegistered: Boolean(userRegistration),
       canManage: canUserManageClub(req.user, event.clubId)
     });
   } catch (err) {

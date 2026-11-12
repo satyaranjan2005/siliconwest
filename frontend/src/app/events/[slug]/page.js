@@ -61,7 +61,7 @@ export default function EventDetailPage() {
       }
     }
     loadEvent();
-  }, [slug]);
+  }, [slug, user]);
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
@@ -925,24 +925,52 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
               </div>
 
               {/* Action Button */}
-              {!event.userRegistration && (
-                event.isRegistrationOpen && !isFull ? (
-                  <Link
-                    href={`/events/${event.slug}/register`}
-                    className="w-full py-3 bg-[#034694] hover:bg-[#023168] text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+              {event.userRegistration ? (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-3 bg-emerald-50 text-emerald-800 border border-emerald-300/80 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-2xs"
                   >
-                    <span>Register for Event</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">
+                      {event.userRegistration.teamName
+                        ? `Registered (${event.userRegistration.teamName})`
+                        : 'Already Registered'}
+                    </span>
+                  </button>
+                  <Link
+                    href="/my-registrations"
+                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span>View Pass in My Registrations</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
-                ) : isFull ? (
-                  <div className="w-full py-2.5 bg-slate-100 text-slate-500 font-medium text-xs rounded-xl text-center">
-                    Registration Full
-                  </div>
-                ) : (
-                  <div className="w-full py-2.5 bg-slate-100 text-slate-500 font-medium text-xs rounded-xl text-center">
-                    Registration Closed
-                  </div>
-                )
+                </div>
+              ) : event.isRegistrationOpen && !isFull ? (
+                <Link
+                  href={`/events/${event.slug}/register`}
+                  className="w-full py-3 bg-[#034694] hover:bg-[#023168] text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <span>Register for Event</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              ) : isFull ? (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full py-2.5 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed"
+                >
+                  Registration Full
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  className="w-full py-2.5 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed"
+                >
+                  Registration Closed
+                </button>
               )}
 
               <div className="text-[11px] text-slate-400 text-center leading-relaxed">

@@ -500,7 +500,7 @@ export default function EventRegisterPage() {
               {/* Action Links */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 print:hidden pt-2">
                 <Link
-                  href="/my-registrations"
+                  href={`/my-registrations?registered=${encodeURIComponent(successRegistration.id || '')}`}
                   className="py-3 px-4 bg-[#034694] hover:bg-[#02336e] text-white font-bold text-xs rounded-xl transition-colors shadow-2xs flex items-center justify-center gap-2 text-center"
                 >
                   <Ticket className="w-4 h-4" />

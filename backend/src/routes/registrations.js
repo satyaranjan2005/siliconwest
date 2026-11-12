@@ -258,14 +258,18 @@ router.post('/', authenticate, async (req, res) => {
   }
 });
 
-// GET /api/registrations/my - View current participant's registrations
+// GET /api/registrations/my - View current participant's registrations (Complete Details)
 router.get('/my', authenticate, async (req, res) => {
   try {
-    const registrations = await prisma.registration.findMany({
+    const userEmail = req.user.email.toLowerCase().trim();
+    const userId = req.user.id;
+
+    // 1. Direct registrations (Individual participant or Team Leader)
+    const directRegistrations = await prisma.registration.findMany({
       where: {
         OR: [
-          { participantUserId: req.user.id },
-          { participantEmail: req.user.email.toLowerCase() }
+          { participantUserId: userId },
+          { participantEmail: userEmail }
         ]
       },
       orderBy: { registeredAt: 'desc' },
@@ -280,15 +284,144 @@ router.get('/my', authenticate, async (req, res) => {
             startsAt: true,
             endsAt: true,
             status: true,
+            category: true,
+            entryFee: true,
+            isTeamEvent: true,
+            minTeamSize: true,
+            maxTeamSize: true,
             club: {
               select: { name: true, slug: true, logoUrl: true }
+            }
+          }
+        },
+        participantUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            sicNo: true,
+            department: true,
+            batch: true,
+            gender: true,
+          }
+        },
+        teamInvitations: {
+          select: {
+            id: true,
+            inviteeName: true,
+            inviteeEmail: true,
+            status: true,
+            createdAt: true,
+            invitee: {
+              select: {
+                name: true,
+                email: true,
+                sicNo: true,
+                department: true,
+                batch: true,
+                gender: true,
+              }
             }
           }
         }
       }
     });
 
-    res.json(registrations);
+    const directRegMap = new Map();
+    directRegistrations.forEach((r) => {
+      directRegMap.set(r.id, {
+        ...r,
+        isLeader: Boolean(r.teamName),
+        isTeammate: false,
+        roleInEvent: r.teamName ? 'Team Leader' : 'Participant',
+      });
+    });
+
+    // 2. Team registrations where current user was invited & accepted
+    const acceptedInvitations = await prisma.teamInvitation.findMany({
+      where: {
+        status: 'ACCEPTED',
+        OR: [
+          { inviteeUserId: userId },
+          { inviteeEmail: userEmail }
+        ],
+        registrationId: { not: null }
+      },
+      include: {
+        registration: {
+          include: {
+            event: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                bannerUrl: true,
+                venue: true,
+                startsAt: true,
+                endsAt: true,
+                status: true,
+                category: true,
+                entryFee: true,
+                isTeamEvent: true,
+                minTeamSize: true,
+                maxTeamSize: true,
+                club: {
+                  select: { name: true, slug: true, logoUrl: true }
+                }
+              }
+            },
+            participantUser: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                sicNo: true,
+                department: true,
+                batch: true,
+                gender: true,
+              }
+            },
+            teamInvitations: {
+              select: {
+                id: true,
+                inviteeName: true,
+                inviteeEmail: true,
+                status: true,
+                createdAt: true,
+                invitee: {
+                  select: {
+                    name: true,
+                    email: true,
+                    sicNo: true,
+                    department: true,
+                    batch: true,
+                    gender: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    acceptedInvitations.forEach((inv) => {
+      if (inv.registration && !directRegMap.has(inv.registration.id)) {
+        directRegMap.set(inv.registration.id, {
+          ...inv.registration,
+          isLeader: false,
+          isTeammate: true,
+          roleInEvent: 'Team Member',
+          invitationId: inv.id,
+        });
+      }
+    });
+
+    const allRegistrations = Array.from(directRegMap.values()).sort(
+      (a, b) => new Date(b.registeredAt) - new Date(a.registeredAt)
+    );
+
+    res.json(allRegistrations);
   } catch (err) {
     console.error('Get my registrations error:', err);
     res.status(500).json({ error: 'Failed to fetch personal registrations.' });

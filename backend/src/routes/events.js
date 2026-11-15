@@ -169,7 +169,7 @@ router.get('/', optionalAuth, async (req, res) => {
 
       const directRegs = await prisma.registration.findMany({
         where: {
-          status: { in: ['CONFIRMED', 'ATTENDED'] },
+          status: 'CONFIRMED',
           OR: [
             { participantUserId: userId },
             { participantEmail: { equals: userEmail, mode: 'insensitive' } }
@@ -383,7 +383,7 @@ router.get('/:slug', optionalAuth, async (req, res) => {
       const direct = await prisma.registration.findFirst({
         where: {
           eventId: event.id,
-          status: { in: ['CONFIRMED', 'ATTENDED'] },
+          status: 'CONFIRMED',
           OR: [
             { participantUserId: userId },
             { participantEmail: { equals: userEmail, mode: 'insensitive' } }
@@ -431,7 +431,7 @@ router.get('/:slug', optionalAuth, async (req, res) => {
           }
         });
 
-        if (invite && invite.registration && ['CONFIRMED', 'ATTENDED'].includes(invite.registration.status)) {
+        if (invite && invite.registration && invite.registration.status === 'CONFIRMED') {
           userRegistration = {
             id: invite.registration.id,
             teamName: invite.teamName || invite.registration.teamName,
@@ -445,7 +445,7 @@ router.get('/:slug', optionalAuth, async (req, res) => {
           const teamRegistrations = await prisma.registration.findMany({
             where: {
               eventId: event.id,
-              status: { in: ['CONFIRMED', 'ATTENDED'] },
+              status: 'CONFIRMED',
               teamName: { not: null }
             },
             select: {

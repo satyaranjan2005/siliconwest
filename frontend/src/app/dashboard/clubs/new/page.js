@@ -74,7 +74,7 @@ export default function CreateClubPage() {
   // Dynamic Coordinators List (from 2nd, 3rd, 4th Year)
   const [coordinators, setCoordinators] = useState([
     {
-      id: 1,
+      id: Date.now() + Math.random(),
       name: '',
       role: '',
       year: '3rd Year',
@@ -101,19 +101,24 @@ export default function CreateClubPage() {
     ]);
   };
 
-  const updateCoordinator = (index, field, value) => {
-    setCoordinators((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value };
-      return copy;
-    });
+  const updateCoordinator = (identifier, field, value) => {
+    setCoordinators((prev) =>
+      prev.map((coord, idx) => {
+        if (coord.id === identifier || idx === identifier) {
+          return { ...coord, [field]: value };
+        }
+        return coord;
+      })
+    );
   };
 
-  const removeCoordinator = (index) => {
-    setCoordinators((prev) => prev.filter((_, i) => i !== index));
+  const removeCoordinator = (identifier) => {
+    setCoordinators((prev) =>
+      prev.filter((coord, idx) => coord.id !== identifier && idx !== identifier)
+    );
   };
 
-  const handleCoordinatorPhotoUpload = (e, index) => {
+  const handleCoordinatorPhotoUpload = (e, coordId) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -145,12 +150,13 @@ export default function CreateClubPage() {
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        updateCoordinator(index, 'photoUrl', canvas.toDataURL('image/jpeg', 0.88));
+        updateCoordinator(coordId, 'photoUrl', canvas.toDataURL('image/jpeg', 0.88));
         setError(null);
       };
       img.src = uploadEvent.target.result;
     };
     reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const handleNameChange = (e) => {
@@ -314,9 +320,9 @@ export default function CreateClubPage() {
           name: c.name.trim(),
           role: (c.role || '').trim() || undefined,
           year: c.year || '3rd Year',
-          branch: c.branch.trim() || undefined,
-          email: c.email.trim() || undefined,
-          phone: c.phone.trim() || undefined,
+          branch: (c.branch || '').trim() || undefined,
+          email: (c.email || '').trim() || undefined,
+          phone: (c.phone || '').trim() || undefined,
           photoUrl: c.photoUrl || undefined,
         }));
 
@@ -1007,7 +1013,7 @@ export default function CreateClubPage() {
 
                     <button
                       type="button"
-                      onClick={() => removeCoordinator(index)}
+                      onClick={() => removeCoordinator(c.id || index)}
                       className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
                       title="Remove coordinator"
                     >
@@ -1021,7 +1027,7 @@ export default function CreateClubPage() {
                       <input
                         type="text"
                         value={c.name}
-                        onChange={(e) => updateCoordinator(index, 'name', e.target.value)}
+                        onChange={(e) => updateCoordinator(c.id || index, 'name', e.target.value)}
                         placeholder="Student Full Name"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                         required
@@ -1032,7 +1038,7 @@ export default function CreateClubPage() {
                       <label className="text-[11px] font-semibold text-slate-700">Academic Year</label>
                       <select
                         value={c.year}
-                        onChange={(e) => updateCoordinator(index, 'year', e.target.value)}
+                        onChange={(e) => updateCoordinator(c.id || index, 'year', e.target.value)}
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       >
                         <option value="4th Year">4th Year (Senior Lead)</option>
@@ -1046,7 +1052,7 @@ export default function CreateClubPage() {
                       <input
                         type="text"
                         value={c.branch}
-                        onChange={(e) => updateCoordinator(index, 'branch', e.target.value)}
+                        onChange={(e) => updateCoordinator(c.id || index, 'branch', e.target.value)}
                         placeholder="e.g. B.Tech CSE"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       />
@@ -1057,7 +1063,7 @@ export default function CreateClubPage() {
                       <input
                         type="email"
                         value={c.email}
-                        onChange={(e) => updateCoordinator(index, 'email', e.target.value)}
+                        onChange={(e) => updateCoordinator(c.id || index, 'email', e.target.value)}
                         placeholder="student@silicon.ac.in"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       />
@@ -1068,7 +1074,7 @@ export default function CreateClubPage() {
                       <input
                         type="tel"
                         value={c.phone}
-                        onChange={(e) => updateCoordinator(index, 'phone', e.target.value)}
+                        onChange={(e) => updateCoordinator(c.id || index, 'phone', e.target.value)}
                         placeholder="+91 98765 00000"
                         className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs"
                       />
@@ -1085,22 +1091,26 @@ export default function CreateClubPage() {
                           <User className="w-5 h-5 text-slate-400" />
                         )}
                       </div>
-                      <div>
-                        <label className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor={`coord-photo-${c.id || index}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer shadow-2xs transition-colors"
+                        >
                           <Upload className="w-3 h-3 text-[#034694]" />
                           <span>{c.photoUrl ? 'Change Photo' : 'Upload Photo'}</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => handleCoordinatorPhotoUpload(e, index)}
-                            className="hidden"
-                          />
                         </label>
+                        <input
+                          id={`coord-photo-${c.id || index}`}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleCoordinatorPhotoUpload(e, c.id || index)}
+                          className="hidden"
+                        />
                         {c.photoUrl && (
                           <button
                             type="button"
-                            onClick={() => updateCoordinator(index, 'photoUrl', '')}
-                            className="ml-2 text-[11px] text-rose-600 hover:underline font-semibold"
+                            onClick={() => updateCoordinator(c.id || index, 'photoUrl', '')}
+                            className="text-[11px] text-rose-600 hover:underline font-semibold"
                           >
                             Remove
                           </button>

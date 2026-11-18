@@ -118,7 +118,7 @@ export default function DashboardClubsPage() {
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Link
               href="/dashboard/clubs/new"
-              className="bg-[#034694] hover:bg-[#02336d] text-white font-bold text-xs h-10 px-4 rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors w-full sm:w-auto"
+              className="bg-[#034694] hover:bg-[#02336d] text-white font-bold text-xs min-h-[40px] px-4 rounded-xl shadow-xs flex items-center justify-center gap-1.5 transition-colors w-full sm:w-auto touch-manipulation active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" />
               <span>Create New Club</span>
@@ -204,12 +204,12 @@ export default function DashboardClubsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 touch-pan-x scrollbar-none">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategoryFilter(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 touch-manipulation active:scale-[0.98] ${
                 categoryFilter === cat
                   ? 'bg-[#034694] text-white shadow-xs'
                   : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -281,12 +281,12 @@ export default function DashboardClubsPage() {
                     {/* Club Name & Logo */}
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                        <div className="w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0 shadow-xs p-1">
                           {club.logoUrl ? (
                             <img
                               src={club.logoUrl}
                               alt={club.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain rounded-lg"
                             />
                           ) : (
                             <span className="font-black text-[#034694] text-base">
@@ -340,10 +340,10 @@ export default function DashboardClubsPage() {
                     </TableCell>
 
                     <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
                         <Link
                           href={`/dashboard/clubs/${club.id}/edit`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-[#034694] text-[#034694] hover:text-white font-bold text-xs transition-colors shadow-2xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 hover:bg-[#034694] text-[#034694] hover:text-white font-bold text-xs transition-colors shadow-2xs touch-manipulation active:scale-[0.98]"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                           <span>Edit</span>
@@ -355,7 +355,7 @@ export default function DashboardClubsPage() {
                               setActionError(null);
                               setClubToDelete(club);
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white font-bold text-xs transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white font-bold text-xs transition-colors shadow-2xs touch-manipulation active:scale-[0.98]"
                             title="Delete society"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export default function DashboardClubsPage() {
                         <Link
                           href={`/clubs/${club.slug}`}
                           target="_blank"
-                          className="inline-flex items-center gap-1 px-2 py-1 text-slate-500 hover:text-slate-900 font-semibold text-xs transition-colors"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-slate-500 hover:text-slate-900 font-semibold text-xs transition-colors touch-manipulation active:scale-[0.98]"
                         >
                           <span>View</span>
                           <ExternalLink className="w-3 h-3" />
@@ -405,7 +405,7 @@ export default function DashboardClubsPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+            <div className="grid grid-cols-2 sm:flex sm:items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
               <button
                 type="button"
                 disabled={deleting}
@@ -413,7 +413,7 @@ export default function DashboardClubsPage() {
                   setClubToDelete(null);
                   setActionError(null);
                 }}
-                className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="px-4 py-2 min-h-[40px] flex items-center justify-center rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 touch-manipulation active:scale-[0.98]"
               >
                 Cancel
               </button>
@@ -421,7 +421,7 @@ export default function DashboardClubsPage() {
                 type="button"
                 disabled={deleting}
                 onClick={handleDeleteClub}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs disabled:opacity-50"
+                className="px-4 py-2 min-h-[40px] rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 shadow-xs disabled:opacity-50 touch-manipulation active:scale-[0.98]"
               >
                 {deleting ? (
                   <>

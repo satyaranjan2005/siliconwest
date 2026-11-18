@@ -538,8 +538,8 @@ export default function EditClubPage() {
 
               <div className="border border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-3">
                 {form.logoUrl ? (
-                  <div className="relative group w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
-                    <img src={form.logoUrl} alt="Club Logo Preview" className="w-full h-full object-cover" />
+                  <div className="relative group w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white p-1 flex items-center justify-center">
+                    <img src={form.logoUrl} alt="Club Logo Preview" className="w-full h-full object-contain rounded-xl" />
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, logoUrl: '' })}
@@ -585,8 +585,8 @@ export default function EditClubPage() {
 
               <div className="border border-dashed border-slate-200 rounded-2xl p-4 text-center bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col items-center justify-center gap-3">
                 {form.bannerUrl ? (
-                  <div className="relative group w-full h-24 rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
-                    <img src={form.bannerUrl} alt="Cover Banner Preview" className="w-full h-full object-cover" />
+                  <div className="relative group w-full h-32 sm:h-36 rounded-2xl overflow-hidden border border-slate-200 shadow-xs bg-white">
+                    <img src={form.bannerUrl} alt="Cover Banner Preview" className="w-full h-full object-cover object-center" />
                     <button
                       type="button"
                       onClick={() => setForm({ ...form, bannerUrl: '' })}
@@ -712,9 +712,9 @@ export default function EditClubPage() {
             {/* Faculty Advisor Photo Uploader */}
             <div className="sm:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.facultyCoordinatorPhoto ? (
-                    <img src={form.facultyCoordinatorPhoto} alt="Faculty Advisor" className="w-full h-full object-cover" />
+                    <img src={form.facultyCoordinatorPhoto} alt="Faculty Advisor" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <GraduationCap className="w-6 h-6 text-slate-400" />
                   )}
@@ -812,9 +812,9 @@ export default function EditClubPage() {
             {/* Secretary Photo Uploader */}
             <div className="sm:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.secretaryPhoto ? (
-                    <img src={form.secretaryPhoto} alt="General Secretary" className="w-full h-full object-cover" />
+                    <img src={form.secretaryPhoto} alt="General Secretary" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <User className="w-6 h-6 text-slate-400" />
                   )}
@@ -912,9 +912,9 @@ export default function EditClubPage() {
             {/* Joint Secretary Photo Uploader */}
             <div className="sm:col-span-2 pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.jointSecretaryPhoto ? (
-                    <img src={form.jointSecretaryPhoto} alt="Joint Secretary" className="w-full h-full object-cover" />
+                    <img src={form.jointSecretaryPhoto} alt="Joint Secretary" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <User className="w-6 h-6 text-slate-400" />
                   )}
@@ -1084,9 +1084,9 @@ export default function EditClubPage() {
                 {/* Photo Uploader */}
                 <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                       {c.photoUrl ? (
-                        <img src={c.photoUrl} alt={c.name || 'Coordinator'} className="w-full h-full object-cover" />
+                        <img src={c.photoUrl} alt={c.name || 'Coordinator'} className="w-full h-full object-cover aspect-square" />
                       ) : (
                         <User className="w-5 h-5 text-slate-400" />
                       )}
@@ -1146,17 +1146,17 @@ export default function EditClubPage() {
         </div>
 
         {/* Submit Actions */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="grid grid-cols-2 sm:flex sm:items-center justify-end gap-3 pt-2">
           <Link
             href="/dashboard/clubs"
-            className="px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex items-center justify-center min-h-[40px] px-5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors touch-manipulation active:scale-[0.98]"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={submitting}
-            className="bg-[#034694] hover:bg-[#02336d] text-white font-bold text-xs h-10 px-6 rounded-xl shadow-xs flex items-center gap-2 transition-all disabled:opacity-60"
+            className="bg-[#034694] hover:bg-[#02336d] text-white font-bold text-xs min-h-[40px] px-6 rounded-xl shadow-xs flex items-center justify-center gap-2 transition-all disabled:opacity-60 touch-manipulation active:scale-[0.98]"
           >
             {submitting ? (
               <>

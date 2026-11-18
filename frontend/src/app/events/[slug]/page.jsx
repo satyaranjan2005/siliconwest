@@ -356,14 +356,14 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
               <>
                 <Link
                   href={`/dashboard/events/${event.id}/edit`}
-                  className="text-xs font-semibold text-[#034694] hover:text-[#022c5e] flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100/80 border border-blue-200 transition-colors shadow-2xs"
+                  className="text-xs font-semibold text-[#034694] hover:text-[#022c5e] flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100/80 border border-blue-200 transition-all shadow-2xs touch-manipulation active:scale-[0.98]"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-[#034694]" />
                   <span>Edit</span>
                 </Link>
                 <Link
                   href="/dashboard/events"
-                  className="text-xs font-medium text-slate-600 hover:text-slate-900 hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200"
+                  className="text-xs font-medium text-slate-600 hover:text-slate-900 hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-200 transition-all touch-manipulation active:scale-[0.98]"
                 >
                   <Shield className="w-3.5 h-3.5 text-[#034694]" />
                   <span>Manage</span>
@@ -373,7 +373,7 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
 
             <button
               onClick={handleCopyLink}
-              className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors shadow-2xs"
+              className="text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-all shadow-2xs touch-manipulation active:scale-[0.98]"
             >
               {copied ? (
                 <>
@@ -797,7 +797,7 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
 
                 <button
                   onClick={handleDownloadBrochure}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-medium rounded-lg transition-colors shrink-0 shadow-2xs w-full sm:w-auto justify-center"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 active:scale-[0.98] text-slate-800 text-xs font-semibold rounded-xl transition-all shrink-0 shadow-2xs w-full sm:w-auto justify-center touch-manipulation min-h-[42px]"
                 >
                   <Download className="w-3.5 h-3.5 text-[#034694]" />
                   <span>Download Doc</span>
@@ -971,7 +971,7 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
                   <button
                     type="button"
                     disabled
-                    className="w-full py-3 bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-bold text-xs rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-2xs"
+                    className="w-full py-3 sm:py-3.5 bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 cursor-not-allowed opacity-90 shadow-2xs min-h-[44px]"
                   >
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="truncate">
@@ -982,7 +982,7 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
                   </button>
                   <Link
                     href="/my-registrations"
-                    className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 sm:py-3 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 touch-manipulation min-h-[42px]"
                   >
                     <span>View Pass in My Registrations</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -991,16 +991,16 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
               ) : event.isRegistrationOpen && !isFull ? (
                 <Link
                   href={`/events/${event.slug}/register`}
-                  className="w-full py-3 bg-[#034694] hover:bg-[#023168] text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full py-3.5 bg-[#034694] hover:bg-[#023168] active:scale-[0.98] text-white font-bold text-xs sm:text-sm rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs touch-manipulation min-h-[46px]"
                 >
                   <span>Register for Event</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               ) : isFull ? (
                 <button
                   type="button"
                   disabled
-                  className="w-full py-2.5 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed"
+                  className="w-full py-3 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed min-h-[44px]"
                 >
                   Registration Full
                 </button>
@@ -1008,7 +1008,7 @@ Campus Portal: https://siliconwest.in/events/${event.slug}
                 <button
                   type="button"
                   disabled
-                  className="w-full py-2.5 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed"
+                  className="w-full py-3 bg-slate-100 text-slate-400 border border-slate-200 font-medium text-xs rounded-xl text-center cursor-not-allowed min-h-[44px]"
                 >
                   Registration Closed
                 </button>

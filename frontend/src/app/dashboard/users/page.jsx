@@ -263,7 +263,7 @@ export default function DashboardUsersPage() {
         {/* Top Header Action to Assign Club Admins */}
         <Button
           onClick={() => openAssignModal()}
-          className="bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 px-4 text-xs rounded-xl shadow-xs flex items-center gap-2 self-start sm:self-auto"
+          className="bg-[#034694] hover:bg-[#02336d] text-white font-bold min-h-[40px] px-4 text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 w-full sm:w-auto touch-manipulation active:scale-[0.98]"
         >
           <Building className="w-4 h-4" />
           <span>Assign Club Admin</span>
@@ -408,7 +408,7 @@ export default function DashboardUsersPage() {
                             <button
                               type="button"
                               onClick={() => openAssignModal(u)}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-slate-300 hover:border-[#034694] text-slate-500 hover:text-[#034694] text-[10px] font-semibold transition-colors bg-white hover:bg-blue-50/30"
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-slate-300 hover:border-[#034694] text-slate-500 hover:text-[#034694] text-[10px] font-semibold transition-colors bg-white hover:bg-blue-50/30 touch-manipulation active:scale-[0.98]"
                               title="Assign this user to a club"
                             >
                               <Plus className="w-2.5 h-2.5" />
@@ -430,7 +430,7 @@ export default function DashboardUsersPage() {
                             <button
                               type="button"
                               onClick={() => openAssignModal(u)}
-                              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-colors shadow-2xs touch-manipulation active:scale-[0.98]"
                             >
                               <Building className="w-3 h-3 text-[#034694]" />
                               <span>Clubs ({userAssignments.length})</span>
@@ -440,7 +440,7 @@ export default function DashboardUsersPage() {
                               <button
                                 onClick={() => handleToggleStatus(u)}
                                 disabled={actionLoading === u.id}
-                                className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
+                                className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border transition-all touch-manipulation active:scale-[0.98] ${
                                   u.isActive
                                     ? 'border-red-200 text-red-600 hover:bg-red-50'
                                     : 'border-emerald-200 text-emerald-700 hover:bg-emerald-50'
@@ -658,12 +658,12 @@ export default function DashboardUsersPage() {
                 </span>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
+              <div className="pt-3 grid grid-cols-2 sm:flex sm:items-center justify-end gap-2 border-t border-slate-100">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowAssignModal(false)}
-                  className="h-9 px-4 text-xs font-semibold"
+                  className="min-h-[40px] px-4 text-xs font-semibold touch-manipulation active:scale-[0.98]"
                 >
                   Done
                 </Button>
@@ -678,7 +678,7 @@ export default function DashboardUsersPage() {
                     <Button
                       type="submit"
                       disabled={assigningLoading || isSelectedClubFull || isUserAlreadyAssigned}
-                      className="bg-[#034694] hover:bg-[#02336d] text-white font-bold h-9 px-5 text-xs shadow-xs flex items-center gap-1.5 disabled:opacity-50"
+                      className="bg-[#034694] hover:bg-[#02336d] text-white font-bold min-h-[40px] px-5 text-xs shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 touch-manipulation active:scale-[0.98]"
                     >
                       {assigningLoading ? (
                         <>

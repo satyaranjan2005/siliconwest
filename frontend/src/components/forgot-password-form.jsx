@@ -104,7 +104,7 @@ export function ForgotPasswordForm({ className, ...props }) {
       <Card className="overflow-hidden p-0 shadow-lg border-slate-200">
         <CardContent className="grid p-0 md:grid-cols-2">
           {/* Left Column: Flow */}
-          <div className="p-6 md:p-8 flex flex-col justify-between">
+          <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-between">
             {step === 1 && (
               <form onSubmit={handleRequestCode} className="space-y-6">
                 <FieldGroup>
@@ -146,7 +146,7 @@ export function ForgotPasswordForm({ className, ...props }) {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 shadow-sm"
+                      className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 sm:h-10 shadow-sm touch-manipulation active:scale-[0.98]"
                     >
                       {loading ? (
                         <>
@@ -212,7 +212,7 @@ export function ForgotPasswordForm({ className, ...props }) {
                         type="button"
                         onClick={handleResend}
                         disabled={loading}
-                        className="ml-auto text-xs text-[#034694] hover:underline font-medium inline-flex items-center gap-1"
+                        className="ml-auto text-xs text-[#034694] hover:underline font-medium inline-flex items-center gap-1 touch-manipulation active:scale-[0.98]"
                       >
                         <RefreshCw className="w-3 h-3" /> Resend
                       </button>
@@ -259,7 +259,7 @@ export function ForgotPasswordForm({ className, ...props }) {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 shadow-sm"
+                      className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 sm:h-10 shadow-sm touch-manipulation active:scale-[0.98]"
                     >
                       {loading ? (
                         <>
@@ -294,7 +294,7 @@ export function ForgotPasswordForm({ className, ...props }) {
                 </div>
                 <Button
                   onClick={() => router.push('/login')}
-                  className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10"
+                  className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 sm:h-10 touch-manipulation active:scale-[0.98]"
                 >
                   Proceed to Sign In
                 </Button>

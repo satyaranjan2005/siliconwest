@@ -294,7 +294,7 @@ export default function EventsPage() {
             <div className="grid grid-cols-3 sm:flex sm:items-center p-1 bg-slate-100 border border-slate-200 rounded-xl w-full sm:w-auto">
               <button
                 onClick={() => setViewMode('timeline')}
-                className={`flex items-center justify-center gap-1.5 py-2 sm:py-1.5 px-3 rounded-lg text-xs transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 sm:py-1.5 px-3 rounded-lg text-xs transition-all touch-manipulation active:scale-[0.98] ${
                   viewMode === 'timeline'
                     ? 'bg-white text-[#034694] shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900 font-medium'
@@ -307,7 +307,7 @@ export default function EventsPage() {
 
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`flex items-center justify-center gap-1.5 py-2 sm:py-1.5 px-3 rounded-lg text-xs transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 sm:py-1.5 px-3 rounded-lg text-xs transition-all touch-manipulation active:scale-[0.98] ${
                   viewMode === 'calendar'
                     ? 'bg-white text-[#034694] shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900 font-medium'
@@ -320,7 +320,7 @@ export default function EventsPage() {
 
               <button
                 onClick={() => setViewMode('grid')}
-                className={`flex items-center justify-center gap-1.5 py-2 sm:py-1.5 px-3 rounded-lg text-xs transition-all ${
+                className={`flex items-center justify-center gap-1.5 py-2.5 sm:py-1.5 px-3 rounded-lg text-xs transition-all touch-manipulation active:scale-[0.98] ${
                   viewMode === 'grid'
                     ? 'bg-white text-[#034694] shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900 font-medium'
@@ -363,7 +363,7 @@ export default function EventsPage() {
             <div className="grid grid-cols-3 sm:flex sm:items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 shrink-0 w-full sm:w-auto">
               <button
                 onClick={() => setTimeframe('upcoming')}
-                className={`py-1.5 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-colors ${
+                className={`py-2 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-all touch-manipulation active:scale-[0.98] ${
                   timeframe === 'upcoming'
                     ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
@@ -373,7 +373,7 @@ export default function EventsPage() {
               </button>
               <button
                 onClick={() => setTimeframe('past')}
-                className={`py-1.5 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-colors ${
+                className={`py-2 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-all touch-manipulation active:scale-[0.98] ${
                   timeframe === 'past'
                     ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
@@ -383,7 +383,7 @@ export default function EventsPage() {
               </button>
               <button
                 onClick={() => setTimeframe('all')}
-                className={`py-1.5 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-colors ${
+                className={`py-2 sm:py-1 px-3 rounded-md text-xs font-medium text-center transition-all touch-manipulation active:scale-[0.98] ${
                   timeframe === 'all'
                     ? 'bg-white text-slate-900 shadow-2xs font-semibold'
                     : 'text-slate-500 hover:text-slate-800'
@@ -395,7 +395,7 @@ export default function EventsPage() {
           </div>
 
           {/* Category Chips Bar */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs pt-1 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs pt-1 border-t border-slate-100 touch-pan-x">
             <span className="text-[11px] font-medium text-slate-400 mr-1 shrink-0 flex items-center gap-1">
               <Filter className="w-3 h-3" /> Category:
             </span>
@@ -403,7 +403,7 @@ export default function EventsPage() {
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`px-3 py-1 rounded-md font-medium whitespace-nowrap transition-colors text-xs shrink-0 ${
+                className={`px-3 py-1.5 sm:py-1 rounded-md font-medium whitespace-nowrap transition-all text-xs shrink-0 touch-manipulation active:scale-[0.98] ${
                   category === cat
                     ? 'bg-slate-900 text-white font-semibold shadow-2xs'
                     : 'text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200/60'
@@ -518,7 +518,7 @@ export default function EventsPage() {
                                 {/* Prominent Event Banner */}
                                 <Link
                                   href={`/events/${event.slug}`}
-                                  className="relative w-full md:w-72 lg:w-80 h-44 sm:h-48 md:h-auto min-h-[160px] sm:min-h-[190px] shrink-0 bg-slate-100 overflow-hidden block"
+                                  className="relative w-full md:w-72 lg:w-80 h-48 sm:h-52 md:h-auto min-h-[180px] sm:min-h-[200px] shrink-0 bg-slate-100 overflow-hidden block"
                                 >
                                   <img
                                     src={
@@ -526,7 +526,7 @@ export default function EventsPage() {
                                       'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80'
                                     }
                                     alt={event.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                   />
                                   <div className="absolute top-3 left-3">
                                     <span
@@ -625,7 +625,7 @@ export default function EventsPage() {
 
                                       <Link
                                         href={`/events/${event.slug}`}
-                                        className="inline-flex items-center gap-1 text-xs font-bold text-[#034694] hover:underline"
+                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#034694] hover:underline px-2.5 py-1.5 rounded-lg hover:bg-blue-50/60 transition-all touch-manipulation active:scale-[0.98]"
                                       >
                                         <span>
                                           {event.isAlreadyRegistered || myRegisteredEventIds.has(event.id)
@@ -901,7 +901,7 @@ export default function EventsPage() {
                               {/* Selected Day Event Banner */}
                               <Link
                                 href={`/events/${ev.slug}`}
-                                className="relative w-full h-36 bg-slate-100 overflow-hidden block"
+                                className="relative w-full h-36 sm:h-40 aspect-[16/9] bg-slate-100 overflow-hidden block"
                               >
                                 <img
                                   src={
@@ -909,7 +909,7 @@ export default function EventsPage() {
                                     'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80'
                                   }
                                   alt={ev.title}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
                                 />
                                 <div className="absolute top-2.5 left-2.5">
                                   <span
@@ -1007,7 +1007,7 @@ export default function EventsPage() {
                               'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80'
                             }
                             alt={event.title}
-                            className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                            className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-300"
                           />
                           <div className="absolute top-3 left-3">
                             <span

@@ -76,7 +76,7 @@ function getCategoryStyle(cat) {
 
 function ClubLogo({ src, name, category }) {
   const [imgError, setImgError] = useState(false);
-  const CategoryIcon = getCategoryIcon(category);
+  const IconComponent = getCategoryIcon(category);
 
   if (src && !imgError) {
     return (
@@ -84,11 +84,11 @@ function ClubLogo({ src, name, category }) {
         src={src}
         alt={name}
         onError={() => setImgError(true)}
-        className="w-full h-full object-cover rounded-xl"
+        className="w-full h-full object-contain rounded-xl p-0.5"
       />
     );
   }
-  return <CategoryIcon className="w-10 h-10 text-[#034694]" />;
+  return React.createElement(IconComponent, { className: "w-8 h-8 sm:w-10 sm:h-10 text-[#034694]" });
 }
 
 export default function ClubsPage() {
@@ -194,7 +194,7 @@ export default function ClubsPage() {
             </div>
 
             {/* Category Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 touch-pan-x">
               {CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
                 const isSelected = selectedCategory === cat.id;
@@ -202,9 +202,9 @@ export default function ClubsPage() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0 transition-all ${
+                    className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-lg whitespace-nowrap shrink-0 transition-all touch-manipulation active:scale-[0.98] ${
                       isSelected
-                        ? 'bg-[#034694] text-white shadow-2xs'
+                        ? 'bg-[#034694] text-white shadow-2xs font-bold'
                         : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/70'
                     }`}
                   >
@@ -269,7 +269,7 @@ export default function ClubsPage() {
                     {/* Club Banner Header */}
                     <Link
                       href={`/clubs/${club.slug}`}
-                      className="block relative h-36 sm:h-40 w-full bg-slate-100 overflow-hidden"
+                      className="block relative h-40 sm:h-44 w-full bg-slate-100 overflow-hidden"
                     >
                       <img
                         src={
@@ -277,7 +277,7 @@ export default function ClubsPage() {
                           'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80'
                         }
                         alt={club.name}
-                        className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                        className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/15 to-transparent" />
 
@@ -296,7 +296,7 @@ export default function ClubsPage() {
                     <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3">
                       {/* Prominently Sized Club Logo Overlapping Banner */}
                       <div className="-mt-9 sm:-mt-10 relative z-10 flex items-end justify-between">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-4 border-white shadow-md p-1 overflow-hidden flex items-center justify-center">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border-4 border-white shadow-md p-1 overflow-hidden flex items-center justify-center shrink-0">
                           <ClubLogo src={club.logoUrl} name={club.name} category={club.category} />
                         </div>
                       </div>
@@ -321,11 +321,11 @@ export default function ClubsPage() {
                   </div>
 
                   {/* Card Bottom Action */}
-                  <div className="px-4 sm:px-5 py-2.5 sm:py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="px-4 sm:px-5 py-2.5 sm:py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
                     {(isSuperAdmin || isClubAdmin) ? (
                       <Link
                         href={`/dashboard/clubs/${club.id}/edit`}
-                        className="inline-flex items-center gap-1 text-slate-500 hover:text-[#034694] text-xs font-semibold px-2 py-1 rounded-md hover:bg-white transition-colors"
+                        className="inline-flex items-center gap-1 text-slate-500 hover:text-[#034694] text-xs font-semibold px-2.5 py-1.5 rounded-md hover:bg-white transition-colors touch-manipulation active:scale-[0.98]"
                       >
                         <Pencil className="w-3 h-3 text-[#034694]" />
                         <span>Edit</span>
@@ -336,7 +336,7 @@ export default function ClubsPage() {
 
                     <Link
                       href={`/clubs/${club.slug}`}
-                      className="inline-flex items-center gap-1.5 text-[#034694] hover:text-[#023168] text-xs font-semibold group-hover:underline"
+                      className="inline-flex items-center gap-1.5 text-[#034694] hover:text-[#023168] text-xs font-semibold group-hover:underline px-2.5 py-1.5 rounded-md hover:bg-blue-50/50 transition-colors touch-manipulation active:scale-[0.98]"
                     >
                       <span>Explore Club</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />

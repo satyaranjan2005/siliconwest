@@ -176,7 +176,7 @@ export function VerifyEmailForm({ className, ...props }) {
       <Card className="overflow-hidden p-0 shadow-lg border-slate-200">
         <CardContent className="grid p-0 md:grid-cols-2">
           {/* Left Column: Form */}
-          <div className="p-6 md:p-8 flex flex-col justify-between">
+          <div className="p-4 sm:p-6 md:p-8 flex flex-col justify-between">
             <FieldGroup>
               {/* Stepper Indicator */}
               <div className="flex items-center justify-between pb-3 mb-2 border-b border-slate-100">
@@ -288,7 +288,7 @@ export function VerifyEmailForm({ className, ...props }) {
                   <Button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 shadow-sm"
+                    className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 sm:h-10 shadow-sm touch-manipulation active:scale-[0.98]"
                   >
                     {loading ? (
                       <>
@@ -312,7 +312,7 @@ export function VerifyEmailForm({ className, ...props }) {
                       size="sm"
                       onClick={handleResend}
                       disabled={cooldown > 0 || resending}
-                      className="text-xs flex items-center gap-1.5"
+                      className="text-xs flex items-center gap-1.5 min-h-[38px] px-3.5 touch-manipulation active:scale-[0.98]"
                     >
                       {resending ? (
                         <>
@@ -431,7 +431,7 @@ export function VerifyEmailForm({ className, ...props }) {
                           key={g}
                           type="button"
                           onClick={() => setGender(g)}
-                          className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all ${
+                          className={`py-2 px-3 text-xs font-bold rounded-xl border min-h-[38px] transition-all touch-manipulation active:scale-[0.98] ${
                             gender === g
                               ? 'bg-[#034694] text-white border-[#034694] shadow-xs'
                               : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
@@ -447,7 +447,7 @@ export function VerifyEmailForm({ className, ...props }) {
                   <Button
                     type="submit"
                     disabled={loading || step === 'completed'}
-                    className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 shadow-sm mt-2"
+                    className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 sm:h-10 shadow-sm mt-2 touch-manipulation active:scale-[0.98]"
                   >
                     {loading ? (
                       <>

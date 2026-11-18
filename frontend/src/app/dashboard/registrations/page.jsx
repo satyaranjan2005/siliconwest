@@ -888,41 +888,41 @@ export default function DashboardRegistrationsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => loadData(true)}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-colors shadow-xs disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 active:scale-[0.98] transition-all shadow-xs disabled:opacity-50 touch-manipulation min-h-[38px]"
             title="Refresh Registrations"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-[#034694]' : 'text-slate-500'}`} />
             <span>Refresh</span>
           </button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
             <Button
               onClick={() => handleExportCsv(selectedEventId !== 'ALL' ? selectedEventId : null, 'excel', 'roster')}
               disabled={filteredRegistrations.length === 0}
-              className="bg-[#034694] hover:bg-[#02336e] text-white font-bold text-xs h-9 px-3.5 rounded-xl flex items-center gap-2 shadow-xs shrink-0"
+              className="bg-[#034694] hover:bg-[#02336e] active:scale-[0.98] text-white font-bold text-xs h-9.5 px-3.5 rounded-xl flex items-center justify-center gap-2 shadow-xs shrink-0 touch-manipulation flex-1 sm:flex-initial"
               title="Export clean tabular Excel Sheet (1 Row per Participant)"
             >
               <Download className="w-3.5 h-3.5" />
               <span>
-                {selectedEventId !== 'ALL' ? 'Export Responses (Excel)' : 'Export All Responses (Excel)'}
+                {selectedEventId !== 'ALL' ? 'Export Excel' : 'Export All (Excel)'}
               </span>
             </Button>
             <button
               onClick={() => handleExportCsv(selectedEventId !== 'ALL' ? selectedEventId : null, 'excel', 'columns')}
               disabled={filteredRegistrations.length === 0}
-              className="h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1 shadow-xs transition-colors shrink-0 disabled:opacity-50"
+              className="h-9.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 font-semibold text-xs flex items-center justify-center gap-1 shadow-xs transition-all shrink-0 disabled:opacity-50 touch-manipulation"
               title="Export wide Google Forms layout with separate Member columns"
             >
-              <span>Columns View</span>
+              <span>Columns</span>
             </button>
             <button
               onClick={() => handleExportCsv(selectedEventId !== 'ALL' ? selectedEventId : null, 'csv', 'roster')}
               disabled={filteredRegistrations.length === 0}
-              className="h-9 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-xs flex items-center shadow-xs transition-colors shrink-0 disabled:opacity-50"
+              className="h-9.5 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-600 font-semibold text-xs flex items-center justify-center shadow-xs transition-all shrink-0 disabled:opacity-50 touch-manipulation"
               title="Export plain CSV"
             >
               <span>CSV</span>
@@ -1236,7 +1236,7 @@ export default function DashboardRegistrationsPage() {
                   </div>
 
                   {/* Right Header Stats & Actions */}
-                  <div className="flex flex-wrap items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto" onClick={(e) => e.stopPropagation()}>
                     {/* Badge counters */}
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-900 shadow-2xs">

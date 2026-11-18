@@ -158,7 +158,7 @@ export default function HomePage() {
                 )}
                 <button
                   type="submit"
-                  className="bg-[#034694] hover:bg-[#023168] text-white text-xs font-semibold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-lg transition-colors shrink-0"
+                  className="bg-[#034694] hover:bg-[#023168] active:scale-[0.98] text-white text-xs font-semibold px-4 sm:px-4 py-2.5 rounded-lg transition-all shrink-0 touch-manipulation shadow-2xs"
                 >
                   Search
                 </button>
@@ -169,7 +169,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-3 pt-2">
               <Link
                 href="/events"
-                className="inline-flex items-center justify-center gap-2 bg-[#034694] hover:bg-[#023168] text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-xl shadow-2xs transition-all text-center"
+                className="inline-flex items-center justify-center gap-2 bg-[#034694] hover:bg-[#023168] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold px-5 py-3 sm:py-2.5 rounded-xl shadow-2xs transition-all text-center touch-manipulation min-h-[44px] sm:min-h-[40px]"
               >
                 <Calendar className="w-4 h-4" />
                 <span>Explore Events Timeline</span>
@@ -177,7 +177,7 @@ export default function HomePage() {
 
               <Link
                 href="/clubs"
-                className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-2xs text-center"
+                className="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-700 border border-slate-200 text-xs sm:text-sm font-semibold px-5 py-3 sm:py-2.5 rounded-xl transition-all shadow-2xs text-center touch-manipulation min-h-[44px] sm:min-h-[40px]"
               >
                 <Compass className="w-4 h-4 text-[#034694]" />
                 <span>Clubs Directory</span>
@@ -252,7 +252,7 @@ export default function HomePage() {
                           'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&auto=format&fit=crop&q=80'
                         }
                         alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                        className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-300"
                       />
                       <div className="absolute top-3 left-3">
                         <span
@@ -388,14 +388,14 @@ export default function HomePage() {
           </div>
 
           {/* Category Filter Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap touch-pan-x">
             {CLUB_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg whitespace-nowrap shrink-0 transition-all ${
+                className={`text-xs font-semibold px-3 py-2 sm:py-1.5 rounded-lg whitespace-nowrap shrink-0 transition-all touch-manipulation active:scale-[0.98] ${
                   selectedCategory === cat.id
-                    ? 'bg-[#034694] text-white shadow-2xs'
+                    ? 'bg-[#034694] text-white shadow-2xs font-bold'
                     : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
@@ -417,14 +417,14 @@ export default function HomePage() {
               >
                 <div>
                   {/* Banner */}
-                  <div className="relative h-36 w-full bg-slate-100 overflow-hidden">
+                  <div className="relative h-36 sm:h-40 w-full bg-slate-100 overflow-hidden">
                     <img
                       src={
                         club.bannerUrl ||
                         'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80'
                       }
                       alt={club.name}
-                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                      className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-300"
                     />
                     <div className="absolute top-3 left-3">
                       <span
@@ -438,12 +438,12 @@ export default function HomePage() {
                   {/* Logo + Title + Description */}
                   <div className="px-5 pb-5 space-y-3">
                     <div className="-mt-9 relative z-10">
-                      <div className="w-16 h-16 rounded-xl bg-white border-2 border-white shadow-sm p-1 overflow-hidden flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-xl bg-white border-2 border-white shadow-sm p-1 overflow-hidden flex items-center justify-center shrink-0">
                         {club.logoUrl ? (
                           <img
                             src={club.logoUrl}
                             alt={club.name}
-                            className="w-full h-full object-cover rounded-lg"
+                            className="w-full h-full object-contain rounded-lg"
                           />
                         ) : (
                           <Compass className="w-6 h-6 text-[#034694]" />

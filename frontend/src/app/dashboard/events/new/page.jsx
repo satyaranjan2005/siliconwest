@@ -944,11 +944,11 @@ export default function CreateEventPage() {
           <div className="space-y-3">
             {form.bannerUrl ? (
               <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                <div className="relative h-48 sm:h-56 w-full rounded-xl overflow-hidden border border-slate-200 bg-white">
+                <div className="relative aspect-[16/9] sm:h-56 max-h-64 w-full rounded-xl overflow-hidden border border-slate-200 bg-white">
                   <img
                     src={form.bannerUrl}
                     alt="Event banner preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -1281,10 +1281,10 @@ export default function CreateEventPage() {
             </select>
           </div>
 
-          <div className="flex items-center gap-3 justify-end">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto justify-end">
             <Link
               href="/dashboard/events"
-              className="px-4 py-2 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-semibold text-slate-700 transition-colors"
+              className="px-4 py-2.5 border border-slate-200 hover:bg-slate-50 active:scale-[0.98] rounded-xl text-xs font-semibold text-slate-700 transition-all text-center touch-manipulation min-h-[40px] flex items-center justify-center"
             >
               Cancel
             </Link>
@@ -1292,12 +1292,12 @@ export default function CreateEventPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="bg-[#034694] hover:bg-[#023168] text-white text-xs font-bold px-6 py-2 rounded-xl shadow-2xs transition-colors flex items-center gap-2 disabled:opacity-50"
+              className="bg-[#034694] hover:bg-[#023168] active:scale-[0.98] text-white text-xs font-bold px-6 py-2.5 rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 touch-manipulation min-h-[40px]"
             >
               {submitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Creating Event...</span>
+                  <span>Creating...</span>
                 </>
               ) : (
                 <span>Publish Event</span>

@@ -95,16 +95,16 @@ export function SignupForm({ className, ...props }) {
       <Card className="overflow-hidden p-0 shadow-lg border-slate-200">
         <CardContent className="grid p-0 md:grid-cols-2">
           {/* Left Column: Signup Form */}
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 flex flex-col justify-between">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 flex flex-col justify-between">
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center mb-1">
                 <div className="w-12 h-12 rounded-2xl bg-[#034694] text-white flex items-center justify-center font-black text-xl shadow-md border-2 border-amber-400">
                   S
                 </div>
-                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Create your account
                 </h1>
-                <p className="text-sm text-balance text-muted-foreground">
+                <p className="text-xs sm:text-sm text-balance text-muted-foreground">
                   Join the Silicon West Campus Community
                 </p>
               </div>
@@ -126,6 +126,7 @@ export function SignupForm({ className, ...props }) {
                   placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="h-10 text-xs sm:text-sm"
                   required
                 />
               </Field>
@@ -139,6 +140,7 @@ export function SignupForm({ className, ...props }) {
                   placeholder="yourname@silicon.ac.in"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="h-10 text-xs sm:text-sm"
                   required
                 />
                 <FieldDescription>
@@ -156,7 +158,7 @@ export function SignupForm({ className, ...props }) {
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
                   required
-                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#034694]/20 focus:border-[#034694] transition-all cursor-pointer"
+                  className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#034694]/20 focus:border-[#034694] transition-all cursor-pointer"
                 >
                   <option value="" disabled>Select your department</option>
                   {DEPARTMENTS.map((dept) => (
@@ -172,7 +174,7 @@ export function SignupForm({ className, ...props }) {
 
               {/* Password & Confirm Password */}
               <Field>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <Field>
                     <FieldLabel htmlFor="password">Password</FieldLabel>
                     <Input
@@ -181,6 +183,7 @@ export function SignupForm({ className, ...props }) {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      className="h-10 text-xs sm:text-sm"
                       required
                     />
                   </Field>
@@ -192,6 +195,7 @@ export function SignupForm({ className, ...props }) {
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="h-10 text-xs sm:text-sm"
                       required
                     />
                   </Field>
@@ -206,7 +210,7 @@ export function SignupForm({ className, ...props }) {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-10 shadow-sm"
+                  className="w-full bg-[#034694] hover:bg-[#02336d] text-white font-bold h-11 text-xs sm:text-sm shadow-sm touch-manipulation active:scale-[0.98]"
                 >
                   {loading ? (
                     <>

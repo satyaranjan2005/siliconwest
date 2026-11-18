@@ -5,7 +5,7 @@ import { ForgotPasswordForm } from '@/components/forgot-password-form';
 
 export default function ForgotPasswordPage() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-slate-100/60 p-6 md:p-10 relative">
+    <div className="flex min-h-svh flex-col items-center justify-center bg-slate-100/60 p-3.5 sm:p-6 md:p-10 relative">
       <div className="w-full max-w-sm md:max-w-4xl space-y-4">
         <Link
           href="/login"

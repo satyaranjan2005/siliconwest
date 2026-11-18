@@ -606,12 +606,12 @@ export default function EventRegisterPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-amber-200/60">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-2 border-t border-amber-200/60">
               <button
                 type="button"
                 disabled={respondingInviteId === pendingEventInvite.id}
                 onClick={() => handleRespondInvitation(pendingEventInvite.id, 'ACCEPT')}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 touch-manipulation min-h-[42px]"
               >
                 {respondingInviteId === pendingEventInvite.id ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -625,7 +625,7 @@ export default function EventRegisterPage() {
                 type="button"
                 disabled={respondingInviteId === pendingEventInvite.id}
                 onClick={() => handleRespondInvitation(pendingEventInvite.id, 'DECLINE')}
-                className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 transition-colors flex items-center gap-1"
+                className="px-3.5 py-2.5 bg-white hover:bg-slate-100 active:scale-[0.98] text-slate-700 font-semibold text-xs rounded-xl border border-slate-300 transition-all flex items-center justify-center gap-1 touch-manipulation min-h-[42px]"
               >
                 <X className="w-3.5 h-3.5 text-slate-500" />
                 <span>Decline</span>
@@ -860,10 +860,10 @@ export default function EventRegisterPage() {
                         type="button"
                         onClick={handleRegister}
                         disabled={submitting || isClosed || Boolean(activeRegistration)}
-                        className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full py-4 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 touch-manipulation min-h-[48px] ${
                           activeRegistration
                             ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
-                            : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
+                            : 'bg-[#034694] hover:bg-[#02336e] active:scale-[0.99] disabled:bg-slate-300 text-white'
                         }`}
                       >
                         {activeRegistration ? (
@@ -1054,18 +1054,18 @@ export default function EventRegisterPage() {
                         type="button"
                         onClick={handleRegister}
                         disabled={submitting || isClosed || Boolean(activeRegistration)}
-                        className={`w-full py-4 font-black text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full py-4 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 touch-manipulation min-h-[48px] ${
                           activeRegistration
                             ? 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 cursor-not-allowed opacity-90'
-                            : 'bg-[#034694] hover:bg-[#02336e] disabled:bg-slate-300 text-white'
+                            : 'bg-[#034694] hover:bg-[#02336e] active:scale-[0.99] disabled:bg-slate-300 text-white'
                         }`}
                       >
                         {activeRegistration ? (
                           <>
                             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                             <span>
-                              {event.userRegistration.teamName
-                                ? `Team "${event.userRegistration.teamName}" Registered`
+                              {activeRegistration?.teamName || event?.userRegistration?.teamName
+                                ? `Team "${activeRegistration?.teamName || event?.userRegistration?.teamName}" Registered`
                                 : 'Already Registered'} &bull; Disabled
                             </span>
                           </>

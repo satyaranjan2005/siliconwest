@@ -111,7 +111,7 @@ export default function DashboardEventsPage() {
         {isSuperAdmin && (
           <Link
             href="/dashboard/events/new"
-            className="inline-flex items-center justify-center gap-2 bg-[#034694] hover:bg-[#023168] text-white font-bold text-xs h-10 px-4 rounded-xl shadow-xs transition-colors w-full sm:w-auto shrink-0"
+            className="inline-flex items-center justify-center gap-2 bg-[#034694] hover:bg-[#023168] text-white font-bold text-xs min-h-[40px] px-4 rounded-xl shadow-xs transition-colors w-full sm:w-auto shrink-0 touch-manipulation active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
             <span>Create New Event</span>
@@ -241,11 +241,11 @@ export default function DashboardEventsPage() {
                     </TableCell>
 
                     <TableCell className="text-right">
-                      <div className="inline-flex items-center gap-3">
+                      <div className="inline-flex items-center gap-1.5 sm:gap-3">
                         <Link
                           href={`/dashboard/events/${event.id}/edit`}
                           title="Edit Event"
-                          className="inline-flex items-center gap-1 text-[#034694] hover:text-[#022c5e] text-xs font-semibold"
+                          className="inline-flex items-center gap-1 text-[#034694] hover:text-[#022c5e] text-xs font-semibold py-1.5 px-2 rounded-lg hover:bg-blue-50 touch-manipulation active:scale-[0.98]"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>Edit</span>
@@ -253,7 +253,7 @@ export default function DashboardEventsPage() {
                         <button
                           onClick={() => handleDownloadCsv(event)}
                           title="Export Registrations to CSV"
-                          className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 text-xs font-semibold"
+                          className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 text-xs font-semibold py-1.5 px-2 rounded-lg hover:bg-slate-100 touch-manipulation active:scale-[0.98]"
                         >
                           <Download className="w-3.5 h-3.5" />
                           <span>CSV</span>
@@ -261,7 +261,7 @@ export default function DashboardEventsPage() {
                         <Link
                           href={`/events/${event.slug}`}
                           target="_blank"
-                          className="inline-flex items-center gap-1 text-slate-600 hover:text-[#034694] font-semibold text-xs"
+                          className="inline-flex items-center gap-1 text-slate-600 hover:text-[#034694] font-semibold text-xs py-1.5 px-2 rounded-lg hover:bg-slate-100 touch-manipulation active:scale-[0.98]"
                         >
                           <span>View</span>
                           <ExternalLink className="w-3 h-3" />

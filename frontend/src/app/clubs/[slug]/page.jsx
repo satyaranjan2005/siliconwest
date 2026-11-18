@@ -10,7 +10,11 @@ import { useAuth } from '@/lib/auth-context';
 // Simple avatar with image or initials fallback
 function Avatar({ src, name, size = 'md' }) {
   const [err, setErr] = useState(false);
-  const sizes = { sm: 'w-10 h-10 text-xs', md: 'w-14 h-14 text-sm', lg: 'w-20 h-20 text-lg' };
+  const sizes = {
+    sm: 'w-10 h-10 text-xs',
+    md: 'w-12 h-12 sm:w-14 sm:h-14 text-sm',
+    lg: 'w-16 h-16 sm:w-20 sm:h-20 text-base sm:text-lg',
+  };
   const initials = (name || 'S').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   if (src && !err) {
@@ -19,13 +23,13 @@ function Avatar({ src, name, size = 'md' }) {
         src={src}
         alt={name}
         onError={() => setErr(true)}
-        className={`${sizes[size]} rounded-full object-cover border border-gray-200`}
+        className={`${sizes[size]} shrink-0 aspect-square rounded-full object-cover border border-gray-200 shadow-2xs`}
       />
     );
   }
 
   return (
-    <div className={`${sizes[size]} rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center border border-gray-200`}>
+    <div className={`${sizes[size]} shrink-0 aspect-square rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center border border-gray-200 shadow-2xs`}>
       {initials}
     </div>
   );
@@ -65,7 +69,7 @@ export default function ClubDetailPage() {
       else buckets['Other'].push(c);
     });
     return buckets;
-  }, [club?.coordinators]);
+  }, [club]);
 
   if (loading) {
     return (
@@ -106,15 +110,15 @@ export default function ClubDetailPage() {
             <span className="text-gray-900 font-medium truncate max-w-[130px] sm:max-w-[240px]">{club.name}</span>
           </div>
           {canManage && (
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
               <Link
                 href={`/dashboard/clubs/${club.id}/edit`}
-                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-[#034694] bg-blue-50 hover:bg-[#034694] hover:text-white px-2.5 py-1 rounded-md transition-colors"
+                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-[#034694] bg-blue-50 hover:bg-[#034694] hover:text-white px-2.5 py-1.5 rounded-lg transition-all touch-manipulation active:scale-[0.98]"
               >
                 <Pencil className="w-3 h-3" />
                 <span>Edit Society</span>
               </Link>
-              <Link href="/dashboard" className="text-[11px] sm:text-xs font-medium text-slate-600 bg-slate-100 px-2 py-1 rounded-md hover:bg-slate-200 transition-colors">
+              <Link href="/dashboard" className="text-[11px] sm:text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded-lg hover:bg-slate-200 transition-all touch-manipulation active:scale-[0.98]">
                 Dashboard
               </Link>
             </div>
@@ -125,11 +129,11 @@ export default function ClubDetailPage() {
       <div className="max-w-5xl mx-auto px-3.5 sm:px-6">
         {/* ── Banner ── */}
         {club.bannerUrl && (
-          <div className="mt-4 sm:mt-6 rounded-xl overflow-hidden border border-gray-100">
+          <div className="mt-4 sm:mt-6 rounded-2xl overflow-hidden border border-gray-100 shadow-2xs bg-slate-900">
             <img
               src={club.bannerUrl}
               alt={club.name}
-              className="w-full h-36 sm:h-64 object-cover"
+              className="w-full h-44 sm:h-64 md:h-72 object-cover object-center"
             />
           </div>
         )}
@@ -139,11 +143,13 @@ export default function ClubDetailPage() {
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start">
             {/* Logo */}
             {club.logoUrl && (
-              <img
-                src={club.logoUrl}
-                alt={club.name || 'Club logo'}
-                className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl object-cover border border-gray-200 shadow-sm bg-white shrink-0"
-              />
+              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border border-gray-200 shadow-sm bg-white shrink-0 p-1.5 flex items-center justify-center overflow-hidden">
+                <img
+                  src={club.logoUrl}
+                  alt={club.name || 'Club logo'}
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              </div>
             )}
 
             <div className="space-y-2.5 sm:space-y-3 flex-1 min-w-0">
@@ -153,7 +159,6 @@ export default function ClubDetailPage() {
                 </h1>
                 <p className="text-gray-500 text-xs sm:text-sm mt-1">
                   {club.category && <span>{club.category}</span>}
-                  {club.establishedYear && <span> · Est. {club.establishedYear}</span>}
                 </p>
               </div>
 

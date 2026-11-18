@@ -492,7 +492,7 @@ export default function CreateClubPage() {
               {form.logoUrl ? (
                 <div className="flex items-center gap-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                   <div className="w-20 h-20 rounded-xl bg-white border border-slate-200 p-1 shrink-0 overflow-hidden flex items-center justify-center shadow-xs">
-                    <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-cover rounded-lg" />
+                    <img src={form.logoUrl} alt="Logo preview" className="w-full h-full object-contain rounded-lg" />
                   </div>
                   <div className="flex-1 min-w-0 space-y-2">
                     <div>
@@ -543,8 +543,8 @@ export default function CreateClubPage() {
 
               {form.bannerUrl ? (
                 <div className="space-y-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-                  <div className="h-28 w-full rounded-xl overflow-hidden border border-slate-200 bg-white">
-                    <img src={form.bannerUrl} alt="Banner preview" className="w-full h-full object-cover" />
+                  <div className="h-32 sm:h-36 w-full rounded-xl overflow-hidden border border-slate-200 bg-white">
+                    <img src={form.bannerUrl} alt="Banner preview" className="w-full h-full object-cover object-center" />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] text-slate-500 font-medium">Cover banner active</span>
@@ -709,7 +709,7 @@ export default function CreateClubPage() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.facultyCoordinatorPhoto ? (
-                    <img src={form.facultyCoordinatorPhoto} alt="Faculty Coordinator" className="w-full h-full object-cover" />
+                    <img src={form.facultyCoordinatorPhoto} alt="Faculty Coordinator" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <GraduationCap className="w-7 h-7 text-slate-400" />
                   )}
@@ -800,7 +800,7 @@ export default function CreateClubPage() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.secretaryPhoto ? (
-                    <img src={form.secretaryPhoto} alt="General Secretary" className="w-full h-full object-cover" />
+                    <img src={form.secretaryPhoto} alt="General Secretary" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <User className="w-7 h-7 text-slate-400" />
                   )}
@@ -891,7 +891,7 @@ export default function CreateClubPage() {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                   {form.jointSecretaryPhoto ? (
-                    <img src={form.jointSecretaryPhoto} alt="Joint Secretary" className="w-full h-full object-cover" />
+                    <img src={form.jointSecretaryPhoto} alt="Joint Secretary" className="w-full h-full object-cover aspect-square" />
                   ) : (
                     <UserCheck className="w-7 h-7 text-slate-400" />
                   )}
@@ -1084,9 +1084,9 @@ export default function CreateClubPage() {
                   {/* Photo Uploader */}
                   <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
                         {c.photoUrl ? (
-                          <img src={c.photoUrl} alt={c.name || 'Coordinator'} className="w-full h-full object-cover" />
+                          <img src={c.photoUrl} alt={c.name || 'Coordinator'} className="w-full h-full object-cover aspect-square" />
                         ) : (
                           <User className="w-5 h-5 text-slate-400" />
                         )}
@@ -1140,10 +1140,10 @@ export default function CreateClubPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs flex items-center justify-end gap-3">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-6 shadow-2xs grid grid-cols-2 sm:flex sm:items-center justify-end gap-3">
           <Link
             href="/dashboard/clubs"
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+            className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 active:scale-[0.98] transition-all text-center flex items-center justify-center touch-manipulation min-h-[40px] border border-slate-200 sm:border-transparent"
           >
             Discard
           </Link>
@@ -1151,7 +1151,7 @@ export default function CreateClubPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-6 py-2 rounded-xl bg-[#034694] hover:bg-[#023168] text-white text-xs font-bold transition-colors shadow-2xs disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-[#034694] hover:bg-[#023168] active:scale-[0.98] text-white text-xs font-bold transition-all shadow-2xs disabled:opacity-50 flex items-center justify-center gap-2 touch-manipulation min-h-[40px]"
           >
             {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             <span>{submitting ? 'Registering...' : 'Register Society'}</span>
